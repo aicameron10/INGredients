@@ -1,0 +1,79 @@
+CREATE TABLE RecipeInfo (
+    id INTEGER PRIMARY KEY NOT NULL,
+    title TEXT ,
+    image TEXT,
+    servings INTEGER ,
+    readyInMinutes INTEGER,
+    sourceName TEXT,
+    summary TEXT,
+    sourceUrl TEXT,
+    spoonacularScore INTEGER
+);
+
+CREATE TABLE Ingredients (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    amount INTEGER ,
+    originalName TEXT,
+    unit TEXT,
+    recipeId INTEGER ,
+    FOREIGN KEY(recipeId) REFERENCES RecipeInfo(id)
+);
+
+CREATE TABLE Instructions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    number INTEGER ,
+    step TEXT,
+    ingredients TEXT,
+    equipment TEXT,
+    recipeId INTEGER ,
+    FOREIGN KEY(recipeId) REFERENCES RecipeInfo(id)
+);
+
+deleteAllInstructions:
+DELETE FROM Instructions WHERE recipeId = ?;
+
+deleteAllIngredients:
+DELETE FROM Ingredients WHERE recipeId = ?;
+
+deleteRecipe:
+DELETE FROM RecipeInfo WHERE id = ?;
+
+selectIDInfo:
+SELECT id
+FROM RecipeInfo WHERE id = ?;
+
+selectAllRecipes:
+SELECT *
+FROM RecipeInfo WHERE id = ?;
+
+selectAllInstructions:
+SELECT *
+FROM Instructions WHERE recipeId = ?;
+
+selectAllIngredients:
+SELECT *
+FROM Ingredients WHERE recipeId = ?;
+
+insertRecipeItems:
+INSERT INTO RecipeInfo(id, title, image, servings, readyInMinutes, sourceName, summary, sourceUrl, spoonacularScore)
+VALUES ( ?,?, ?, ? ,? , ?, ?, ?, ?);
+
+insertFullRecipe:
+INSERT INTO RecipeInfo(id, title, image, servings, readyInMinutes, sourceName, summary, sourceUrl, spoonacularScore)
+VALUES ?;
+
+insertInstructionsItems:
+INSERT INTO Instructions(number, step, ingredients, equipment, recipeId)
+VALUES ( ?, ?, ? ,? , ?);
+
+insertFullInstructions:
+INSERT INTO Instructions(number, step, ingredients, equipment, recipeId)
+VALUES ?;
+
+insertIngredientsItems:
+INSERT INTO Ingredients(amount, originalName, unit, recipeId)
+VALUES ( ?, ?, ? ,?);
+
+insertFullIngredients:
+INSERT INTO Ingredients(amount, originalName, unit, recipeId)
+VALUES ?;
