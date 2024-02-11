@@ -8,7 +8,7 @@ structured with clean separation between Model, Domain, Data, and UI layers.
 Introduction:
 
 So I decided to to try for a nice challenge and potential learnings, but still demonstrating a
-Android focused project , with MvvM a Kotlin multiplatform project.
+Android focused project, with MvvM,  a Kotlin multiplatform project.
 I tried to leverage the robustness of Kotlin Multiplatform to share business logic across iOS and Android.
 My choice of technologies were driven by the need for a scalable, maintainable, and testable codebase.
 
@@ -37,7 +37,6 @@ Shared Database Logic: I leveraged SQLDelight in the common module to handle loc
 
 Platform-Specific Database Drivers: SQLDelight requires platform-specific drivers, so i implemented a SQL driver for Android and a Native driver for iOS, both configured in their respective platform-specific modules.
 
-
 Assumptions:
 I used a RESTful API with JSON payloads for network communications.
 I assumed that both Android and iOS platforms have similar feature sets and user interface requirements.
@@ -51,9 +50,52 @@ Tests: Write more comprehensive test coverage.
 
 Conclusion:
 The architecture designed for my application provides a solid foundation for a scalable and maintainable mobile application across multiple platforms(iOS and Android). By using Kotlin Multiplatform, it can reduce the overhead of maintaining separate codebases and ensure consistency in business logic across platforms. 
-The application of MVVM facilitates testing and separation of concerns, particularly in conjunction with StateFlow for reactive state management. Continuous iteration and refinement will be crucial to help application evolve, and if more time was spent on development.
+The application of MVVM facilitates testing and separation of concerns, particularly in conjunction with StateFlow for reactive state management. Continuous iteration and refinement will be crucial to help the application evolve, and if more time was spent on development.
 
 Instructions:
+Prerequisites:
+Before you start, ensure you have the following installed:
+
+Git
+JDK (Java Development Kit)
+Android Studio (latest version recommended as it provides the best support for KMM)
+Xcode (if you are on macOS and plan to run the iOS application)
+
+Steps:
+Clone the Repository:
+
+git clone https://github.com/aicameron10/INGredients.git
+
+Open the Project:
+
+Open Android Studio and select "Open an existing project". Navigate to the directory where you cloned the project and select the project directory.
+
+Sync Gradle:
+
+After opening the project, Android Studio will attempt to sync the project with Gradle files. If it doesn't start automatically, you can trigger a Gradle sync manually by clicking on the "Sync Project with Gradle Files" button in the toolbar.
+
+Check Configuration:
+
+Ensure that the Kotlin plugin is up-to-date. You can check this by going to Android Studio > Preferences > Plugins and looking for the Kotlin plugin.
+
+Run the Android Application:
+
+Make sure you have an Android emulator set up or a physical Android device connected.
+Select the Android application module in the configuration dropdown menu in the toolbar.
+
+Run the iOS Application:
+(Skip this step if you're not on macOS or not interested in running the iOS app.)
+
+Open the iosApp directory within the KMM project in Xcode.
+Select an iOS simulator or a connected iOS device.
+Press Cmd + R to build and run the iOS application.
+Troubleshooting:
+
+Build Failures:
+For any build errors, check the error log in Android Studio or Xcode and address the issues. They might be due to version incompatibilities or missing SDK components.
+
+Gradle Wrapper:
+If there are problems with the Gradle wrapper, you may need to check if the wrapper is included in the repository or if you need to adjust Gradle settings.
 
 Design Inspiration:
 Tasty, Cookpad, Recipe Keeper
