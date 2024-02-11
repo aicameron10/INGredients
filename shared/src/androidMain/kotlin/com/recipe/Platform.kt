@@ -59,7 +59,7 @@ actual fun switchToDarkMode() {
     } else {
         val uiManager =
             RecipeApp.appContext.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
-        uiManager.nightMode = UiModeManager.MODE_NIGHT_YES;
+        uiManager.nightMode = UiModeManager.MODE_NIGHT_YES
     }
 }
 

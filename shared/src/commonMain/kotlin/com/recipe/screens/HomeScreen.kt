@@ -98,6 +98,7 @@ class HomeScreen : Screen, KoinComponent {
     override fun Content() {
         val viewModel = get<SharedViewModel>()
         val sessionManager = get<SessionManager>()
+        viewModel.loadRecentViewed()
         HomeScreenContent(viewModel, sessionManager)
     }
 }
@@ -273,6 +274,7 @@ fun SearchWithAutocomplete(viewModel: SharedViewModel, sessionManager: SessionMa
         }
     }
 }
+
 @Composable
 fun RecentlyViewedItem(
     item: RecipeInfo,
@@ -290,7 +292,8 @@ fun RecentlyViewedItem(
                 navigator.push(
                     RecipeDetailScreen(
                         recipeId = item.id.toInt(),
-                        recipeTitle = item.title
+                        recipeTitle = item.title,
+                        recipeImage = item.image
                     )
                 )
             }
@@ -374,7 +377,7 @@ fun RecipeList(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Spacer(modifier = Modifier.padding(MEDIUM_PADDING))
-                        if(recipeList.isNotEmpty()) {
+                        if (sharedViewModel.recentList.value.isNotEmpty()) {
                             Text(
                                 text = "Recently viewed recipes.", modifier = Modifier
                                     .fillMaxWidth(1f)
@@ -384,6 +387,7 @@ fun RecipeList(
                                 style = MaterialTheme.typography.subtitle2,
                                 fontWeight = FontWeight.Bold
                             )
+
                             Spacer(modifier = Modifier.padding(SMALL_PADDING))
                             LazyRow(
                                 horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -396,6 +400,7 @@ fun RecipeList(
                                 }
                             }
                         }
+
                         val composition = rememberKottieComposition(
                             spec = KottieCompositionSpec.File("ingredients.json")
                         )
@@ -458,7 +463,8 @@ fun RecipeItem(
                 navigator.push(
                     RecipeDetailScreen(
                         recipeId = item.id,
-                        recipeTitle = item.title
+                        recipeTitle = item.title,
+                        recipeImage = item.image
                     )
                 )
             },

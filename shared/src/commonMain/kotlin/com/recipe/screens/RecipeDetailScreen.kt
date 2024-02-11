@@ -44,7 +44,6 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
-import co.touchlab.kermit.Logger
 import com.recipe.database.DatabaseRepository
 import com.recipe.multiplatformsettings.SessionManager
 import com.recipe.network.model.request.RecipeRequest
@@ -82,7 +81,8 @@ import org.koin.core.component.get
 
 class RecipeDetailScreen(
     private val recipeId: Int?,
-    private val recipeTitle: String?
+    private val recipeTitle: String?,
+    private val recipeImage: String?
 ) : Screen, KoinComponent {
 
     @OptIn(ExperimentalResourceApi::class)
@@ -96,14 +96,16 @@ class RecipeDetailScreen(
         val scope = rememberCoroutineScope()
         val isLoading = viewModel.isLoading.collectAsState().value
         val isNetworkError = viewModel.isNetworkError.collectAsState().value
+        val isFavourite = viewModel.isFavourite.collectAsState().value
 
-        viewModel.isFavourite.value =
+        viewModel._isFavourite.value =
             databaseRepository.database.recipesQueries.selectFavouriteInfo(
                 recipeId?.toLong() ?: 0L
             ).executeAsOneOrNull()?.favourite?.toInt() ?: 0
 
         LaunchedEffect(key1 = sessionManager.getAuthorization()) {
             scope.launch {
+                viewModel.recipeInfo = null
                 viewModel.getRecipeInformation(
                     RecipeRequest(
                         authorization = sessionManager.getAuthorization(),
@@ -128,8 +130,8 @@ class RecipeDetailScreen(
                             response.data.let {
                                 databaseRepository.database.recipesQueries.insertRecipeItems(
                                     id = recipeId?.toLong(),
-                                    title = recipeTitle,
-                                    image = it?.image,
+                                    title = recipeTitle.toString(),
+                                    image = recipeImage.toString(),
                                     servings = it?.servings?.toLong(),
                                     readyInMinutes = it?.readyInMinutes?.toLong(),
                                     sourceName = it?.sourceName,
@@ -286,14 +288,9 @@ class RecipeDetailScreen(
                                 Icon(
                                     modifier = Modifier
                                         .width(35.dp).height(35.dp).clickable {
-                                            viewModel.isFavourite.value =
-                                                if (viewModel.isFavourite.value == 0) 1 else 0
-                                            databaseRepository.database.recipesQueries.updateFavourite(
-                                                favourite = viewModel.isFavourite.value.toLong(),
-                                                id = recipeId?.toLong() ?: 0L,
-                                            )
+                                            viewModel.toggleFavourite(recipeId?.toLong())
                                         },
-                                    imageVector = if (viewModel.isFavourite.value == 0) FeatherIcons.Heart else Icons.Filled.Favorite,
+                                    imageVector = if (isFavourite == 0) FeatherIcons.Heart else Icons.Filled.Favorite,
                                     contentDescription = "favourite",
                                     tint = grey9
                                 )

@@ -72,6 +72,8 @@ class RecipeScreen : Screen, KoinComponent {
         val sharedViewModel = get<SharedViewModel>()
         val databaseRepository = get<DatabaseRepository>()
 
+        viewModel.loadFavourite()
+
         val favList = viewModel.favouriteList.value
 
         FavouriteList(favList = favList, sharedViewModel = sharedViewModel, databaseRepository= databaseRepository, viewModel = viewModel)
@@ -193,7 +195,8 @@ class RecipeScreen : Screen, KoinComponent {
                     navigator.push(
                         RecipeDetailScreen(
                             recipeId = item.id.toInt(),
-                            recipeTitle = item.title
+                            recipeTitle = item.title,
+                            recipeImage = item.image
                         )
                     )
                 },
@@ -205,12 +208,11 @@ class RecipeScreen : Screen, KoinComponent {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-
                 Card(
                     modifier = Modifier
-                        .width(100.dp)
+                        .width(130.dp)
                         .padding(start = 16.dp)
-                        .height(100.dp).padding(end = 8.dp),
+                        .height(130.dp).padding(end = 8.dp),
                     shape = RoundedCornerShape(8.dp), elevation = 2.dp
                 ) {
                     Image(
@@ -218,8 +220,8 @@ class RecipeScreen : Screen, KoinComponent {
                         contentDescription = null,
                         contentScale = ContentScale.FillBounds,
                         modifier = Modifier
-                            .height(100.dp)
-                            .width(100.dp)
+                            .height(312.dp)
+                            .width(231.dp)
                     )
                 }
                 Column(

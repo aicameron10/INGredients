@@ -3,6 +3,7 @@ package com.recipe.viewmodels
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.recipe.database.DatabaseRepository
 import com.recipe.network.Response
 import com.recipe.network.api.RecipeRepository
 import com.recipe.network.model.request.RecipeRequest
@@ -16,6 +17,7 @@ import kotlinx.coroutines.launch
 
 class RecipeDetailViewModel(
     private val recipeRepository: RecipeRepository,
+    private val databaseRepository: DatabaseRepository,
     private val mainDispatcher: CoroutineDispatcher = Dispatchers.Main
 ) {
 
@@ -25,7 +27,18 @@ class RecipeDetailViewModel(
         MutableStateFlow(null)
     val recipeInfoObserver: StateFlow<Response<RecipeInfoResponse>?> = _recipeInfo
 
-    val isFavourite = MutableStateFlow(0)
+    val _isFavourite = MutableStateFlow(0) // 0 = not favourite, 1 = favourite
+    val isFavourite: StateFlow<Int> = _isFavourite
+
+    fun toggleFavourite(recipeId: Long?) {
+        _isFavourite.value = if (_isFavourite.value == 0) 1 else 0
+        recipeId?.let {
+            databaseRepository.database.recipesQueries.updateFavourite(
+                favourite = _isFavourite.value.toLong(),
+                id = it
+            )
+        }
+    }
 
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> get() = _isLoading

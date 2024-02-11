@@ -1,5 +1,6 @@
 package com.recipe.viewmodels
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -28,7 +29,6 @@ class SharedViewModel(
     private val mainDispatcher: CoroutineDispatcher = Dispatchers.Main
 ) {
 
-    var hasFetchedRecipe = false
     var lastSearchedText = ""
     var nav: Navigator? = null
 
@@ -64,12 +64,6 @@ class SharedViewModel(
     private val _getAutoCompleteResponse: MutableStateFlow<Response<List<AutoCompleteResponse>>?> = MutableStateFlow(null)
     val autoCompleteObserver: StateFlow<Response<List<AutoCompleteResponse>>?> = _getAutoCompleteResponse
 
-    fun fetchRecipeIfNeeded(request: RecipeRequest) {
-        if (!hasFetchedRecipe) {
-            getRecipes(request)
-            hasFetchedRecipe = true
-        }
-    }
 
     fun getRecipes(
         recipeRequest: RecipeRequest
