@@ -27,6 +27,7 @@ class RecipeRepository : BaseRepository(), KoinComponent {
         recipeRequest: RecipeRequest
     ): Response<RecipeResponse> {
         return processResponse(
+            decodeApiError = true,
             apiToBeCalled = {
                 httpClient.get(recipeApi.getRecipes()) {
                     formData {
@@ -47,6 +48,7 @@ class RecipeRepository : BaseRepository(), KoinComponent {
         recipeRequest: RecipeRequest
     ): Response<RecipeInfoResponse> {
         return processResponse(
+            decodeApiError = true,
             apiToBeCalled = {
                 httpClient.get(recipeApi.getRecipeInformation(recipeRequest.id.toString())) {
                     formData {
@@ -65,6 +67,7 @@ class RecipeRepository : BaseRepository(), KoinComponent {
         recipeRequest: RecipeRequest
     ): Response<List<AutoCompleteResponse>> {
         return processResponse(
+            decodeApiError = true,
             apiToBeCalled = {
                 httpClient.get(recipeApi.getAutoComplete()) {
                     formData {

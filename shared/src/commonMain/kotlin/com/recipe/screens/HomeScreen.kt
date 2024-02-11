@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,9 +19,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Card
 import androidx.compose.material.Divider
@@ -42,11 +45,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -58,13 +63,13 @@ import animateKottieCompositionAsState
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
-import com.recipe.database.DatabaseRepository
 import com.recipe.isConnected
 import com.recipe.multiplatformsettings.SessionManager
 import com.recipe.network.model.request.RecipeRequest
 import com.recipe.network.model.response.ResultData
 import com.recipe.ui.theme.MEDIUM_PADDING
 import com.recipe.ui.theme.SMALL_PADDING
+import com.recipe.ui.theme.black
 import com.recipe.ui.theme.blue5
 import com.recipe.ui.theme.grey1
 import com.recipe.ui.theme.grey2
@@ -78,6 +83,7 @@ import compose.icons.FeatherIcons
 import compose.icons.feathericons.Filter
 import compose.icons.feathericons.MoreHorizontal
 import compose.icons.feathericons.Search
+import comrecipe.RecipeInfo
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
@@ -87,38 +93,40 @@ import rememberKottieComposition
 
 class HomeScreen : Screen, KoinComponent {
 
-    @OptIn(ExperimentalComposeUiApi::class)
     @ExperimentalMaterialApi
     @Composable
     override fun Content() {
         val viewModel = get<SharedViewModel>()
         val sessionManager = get<SessionManager>()
-        val databaseRepository = get<DatabaseRepository>()
-        //val keyboardController = LocalSoftwareKeyboardController.current
-        HomeScreenContent(viewModel, sessionManager, databaseRepository)
+        HomeScreenContent(viewModel, sessionManager)
     }
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun HomeScreenContent(
     viewModel: SharedViewModel,
-    sessionManager: SessionManager,
-    databaseRepository: DatabaseRepository
+    sessionManager: SessionManager
 ) {
     sessionManager.setAuthorization(API_KEY)
 
     LaunchedEffect(key1 = sessionManager.getAuthorization()) {
         viewModel.recipeObserver.filterNotNull().collect { response ->
             if (response.data != null) {
-                viewModel.recipeList = response.data?.results
+                if (response.data?.results?.isNotEmpty() == true) {
+                    viewModel.recipeList = response.data?.results
+                } else {
+                    viewModel.showSnackBar("Empty results, please try again!")
+                }
+            } else if (response.apiError != null) {
+                viewModel.showSnackBar(response.apiError.message.toString())
+            } else {
+                viewModel.showSnackBar("Something went wrong, please try again!")
             }
         }
     }
 
     Box(modifier = Modifier.pointerInput(Unit) {
         detectTapGestures(onTap = {
-            //keyboardController?.hide()
         })
     }) {
         Column {
@@ -180,7 +188,9 @@ fun SearchWithAutocomplete(viewModel: SharedViewModel, sessionManager: SessionMa
             }
         }
         IconButton(onClick = {
-            showMore = true
+            if (viewModel.recipeList?.isNotEmpty() == true) {
+                showMore = true
+            }
         }) {
             Icon(
                 FeatherIcons.Filter,
@@ -191,8 +201,11 @@ fun SearchWithAutocomplete(viewModel: SharedViewModel, sessionManager: SessionMa
     }
 
     Column {
+        val focusManager = LocalFocusManager.current
+        val focusRequester = remember { FocusRequester() }
+
         TextField(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
             value = searchText,
             trailingIcon = trailingIcon,
             onValueChange = { searchText = it },
@@ -207,7 +220,18 @@ fun SearchWithAutocomplete(viewModel: SharedViewModel, sessionManager: SessionMa
                 imeAction = ImeAction.Done,
                 keyboardType = KeyboardType.Text
             ),
-            // keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() })
+            keyboardActions = KeyboardActions(onDone = {
+                viewModel.lastSearchedText = searchText
+                viewModel.getRecipes(
+                    RecipeRequest(
+                        authorization = sessionManager.getAuthorization(),
+                        query = searchText
+                    )
+                )
+                apiResponse?.data = emptyList()
+                searchText = ""
+                focusManager.clearFocus()
+            })
         )
 
         LazyColumn {
@@ -225,7 +249,7 @@ fun SearchWithAutocomplete(viewModel: SharedViewModel, sessionManager: SessionMa
                     )
                     apiResponse?.data = emptyList()
                     searchText = ""
-                    //keyboardController?.hide() // Hide the keyboard and close the list
+                    focusManager.clearFocus()
                 }) {
                     Text(
                         text = item.title.toString(),
@@ -247,6 +271,58 @@ fun SearchWithAutocomplete(viewModel: SharedViewModel, sessionManager: SessionMa
                 }
             }
         }
+    }
+}
+@Composable
+fun RecentlyViewedItem(
+    item: RecipeInfo,
+    sharedViewModel: SharedViewModel
+) {
+    val navigator = LocalNavigator.currentOrThrow
+    Column(
+        modifier = Modifier
+            .width(130.dp)
+            .height(200.dp)
+            .clickable {
+                sharedViewModel.showBackIcon.value = true
+                sharedViewModel.topBarTitle.value = item.title.toString()
+                sharedViewModel.nav = navigator
+                navigator.push(
+                    RecipeDetailScreen(
+                        recipeId = item.id.toInt(),
+                        recipeTitle = item.title
+                    )
+                )
+            }
+    ) {
+        Card(
+            modifier = Modifier
+                .padding(4.dp, 4.dp)
+                .width(130.dp)
+                .height(100.dp),
+            shape = RoundedCornerShape(8.dp), elevation = 4.dp
+        ) {
+            Image(
+                painter = rememberImagePainter(item.image.toString()),
+                contentScale = ContentScale.FillBounds,
+                contentDescription = "image",
+                modifier = Modifier
+                    .height(312.dp)
+                    .width(231.dp)
+            )
+        }
+
+        Text(
+            text = item.title.toString(),
+            style = MaterialTheme.typography.subtitle2,
+            fontSize = 14.sp,
+            maxLines = 3,
+            color = black,
+            overflow = TextOverflow.Ellipsis,
+            fontWeight = FontWeight.Medium,
+            modifier = Modifier
+                .padding(start = 4.dp, end = 4.dp, top = 4.dp, bottom = 2.dp)
+        )
     }
 }
 
@@ -288,14 +364,38 @@ fun RecipeList(
             }
         } else {
             if (recipeList.isEmpty()) {
+                val recentList = sharedViewModel.recentList.value
                 Box(
                     modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.TopCenter
                 ) {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier.fillMaxWidth()
                     ) {
+                        Spacer(modifier = Modifier.padding(MEDIUM_PADDING))
+                        if(recipeList.isNotEmpty()) {
+                            Text(
+                                text = "Recently viewed recipes.", modifier = Modifier
+                                    .fillMaxWidth(1f)
+                                    .padding(start = 48.dp, end = 48.dp),
+                                textAlign = TextAlign.Center,
+                                color = grey9,
+                                style = MaterialTheme.typography.subtitle2,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Spacer(modifier = Modifier.padding(SMALL_PADDING))
+                            LazyRow(
+                                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                                contentPadding = PaddingValues(start = 16.dp, end = 16.dp)
+                            ) {
+                                itemsIndexed(
+                                    items = recentList,
+                                    key = { _, item -> item.id }) { index, item ->
+                                    RecentlyViewedItem(item = item, sharedViewModel)
+                                }
+                            }
+                        }
                         val composition = rememberKottieComposition(
                             spec = KottieCompositionSpec.File("ingredients.json")
                         )
@@ -309,7 +409,7 @@ fun RecipeList(
                         KottieAnimation(
                             composition = composition,
                             progress = { animationState.progress },
-                            modifier = Modifier.width(300.dp).height(300.dp),
+                            modifier = Modifier.width(280.dp).height(250.dp),
                         )
                         Text(
                             text = "Start your search for amazing recipes!", modifier = Modifier
@@ -319,7 +419,6 @@ fun RecipeList(
                             color = grey9,
                             style = MaterialTheme.typography.subtitle2,
                             fontWeight = FontWeight.Bold
-
                         )
                     }
                 }
@@ -350,14 +449,16 @@ fun RecipeItem(
     val navigator = LocalNavigator.currentOrThrow
     Card(
         modifier = Modifier
-            .height(150.dp)
+            .height(180.dp)
             .fillMaxWidth()
             .clickable {
                 sharedViewModel.showBackIcon.value = true
                 sharedViewModel.topBarTitle.value = item.title.toString()
+                sharedViewModel.nav = navigator
                 navigator.push(
                     RecipeDetailScreen(
-                        recipeId = item.id
+                        recipeId = item.id,
+                        recipeTitle = item.title
                     )
                 )
             },
@@ -372,19 +473,18 @@ fun RecipeItem(
 
             Card(
                 modifier = Modifier
-                    .width(100.dp)
+                    .width(130.dp)
                     .padding(start = 16.dp)
-                    .height(100.dp).padding(end = 8.dp),
+                    .height(130.dp).padding(end = 8.dp),
                 shape = RoundedCornerShape(8.dp), elevation = 2.dp
             ) {
-
                 Image(
                     rememberImagePainter(item.image.toString()),
                     contentDescription = null,
                     contentScale = ContentScale.FillBounds,
                     modifier = Modifier
-                        .height(100.dp)
-                        .width(100.dp)
+                        .height(312.dp)
+                        .width(231.dp)
                 )
             }
             Column(

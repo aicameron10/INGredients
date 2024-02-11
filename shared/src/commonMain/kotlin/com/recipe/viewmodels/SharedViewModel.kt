@@ -1,32 +1,57 @@
 package com.recipe.viewmodels
 
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import cafe.adriel.voyager.navigator.Navigator
 import com.recipe.database.DatabaseRepository
-import com.recipe.multiplatformsettings.SessionManager
 import com.recipe.network.Response
 import com.recipe.network.api.RecipeRepository
 import com.recipe.network.model.request.RecipeRequest
 import com.recipe.network.model.response.AutoCompleteResponse
 import com.recipe.network.model.response.RecipeResponse
 import com.recipe.network.model.response.ResultData
+import comrecipe.RecipeInfo
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
 class SharedViewModel(
-    private val databaseRepository: DatabaseRepository,
     private val recipeRepository: RecipeRepository,
-    private val sessionManager: SessionManager,
+    private val databaseRepository: DatabaseRepository,
     private val mainDispatcher: CoroutineDispatcher = Dispatchers.Main
 ) {
 
     var hasFetchedRecipe = false
     var lastSearchedText = ""
+    var nav: Navigator? = null
+
+    private val snackBarChannel = Channel<String>()
+
+    val snackBarFlow = snackBarChannel.receiveAsFlow()
+    fun showSnackBar(message: String) {
+        // Use viewModelScope to launch coroutines in ViewModel
+        CoroutineScope(mainDispatcher).launch {
+            snackBarChannel.send(message)
+        }
+    }
+
+    private val _recentList = mutableStateOf<List<RecipeInfo>>(listOf())
+    val recentList: State<List<RecipeInfo>> = _recentList
+
+    init {
+        loadRecentViewed()
+    }
+
+    fun loadRecentViewed() {
+        _recentList.value = databaseRepository.database.recipesQueries.selectAllRecipeList().executeAsList().reversed()
+    }
 
     val showBackIcon = mutableStateOf(false)
     val topBarTitle = mutableStateOf("INGredients")

@@ -74,6 +74,8 @@ kotlin {
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
+            implementation(kotlin("test-common"))
+            implementation(kotlin("test-annotations-common"))
         }
 
         sourceSets.nativeMain.dependencies {
@@ -107,4 +109,11 @@ android {
     defaultConfig {
         minSdk = 24
     }
+}
+dependencies {
+    testImplementation(libs.ktor.client.mock)
+    testImplementation(libs.koin.test.junit5)
+    testImplementation(libs.koin.test.v316)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.mockk)
 }

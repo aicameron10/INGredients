@@ -5,7 +5,7 @@ import com.recipe.network.model.response.APIError
 sealed class Response<T>(
     var data: T? = null,
     val httpStatusErrorCode: Int? = null,
-    val apiError: List<APIError>? = null,
+    val apiError: APIError? = null,
 ) {
 
     /**
@@ -31,7 +31,7 @@ sealed class Response<T>(
     /**
      * Represent API Error thrown from service
      */
-    class RecipeAPIError<T>(apiError: List<APIError>) : Response<T>(apiError = apiError)
+    class RecipeAPIError<T>(apiError: APIError) : Response<T>(apiError = apiError)
 
     /**
      * Represent IOExceptions and connectivity issues.

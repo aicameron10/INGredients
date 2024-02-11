@@ -27,8 +27,12 @@ class RecipeDetailViewModel(
 
     val isFavourite = MutableStateFlow(0)
 
-    private val _isLoading = MutableStateFlow(false)
+    private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> get() = _isLoading
+
+    val _isError = MutableStateFlow(false)
+    val isNetworkError: StateFlow<Boolean> get() = _isError
+    var networkErrorMessage = ""
 
     fun getRecipeInformation(
         recipeRequest: RecipeRequest

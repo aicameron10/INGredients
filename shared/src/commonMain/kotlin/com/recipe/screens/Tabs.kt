@@ -23,7 +23,9 @@ import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
@@ -38,6 +40,7 @@ import cafe.adriel.voyager.navigator.tab.LocalTabNavigator
 import cafe.adriel.voyager.navigator.tab.Tab
 import cafe.adriel.voyager.navigator.tab.TabDisposable
 import cafe.adriel.voyager.navigator.tab.TabNavigator
+import co.touchlab.kermit.Logger
 import com.recipe.navigation.HomeTab
 import com.recipe.navigation.RecipeTab
 import com.recipe.navigation.SettingsTab
@@ -62,6 +65,17 @@ class TabsScreen : Screen, KoinComponent {
 
         val viewModel = get<SharedViewModel>()
 
+        val scaffoldState = rememberScaffoldState()
+
+        val snackBarHostState = scaffoldState.snackbarHostState
+
+        LaunchedEffect(snackBarHostState) {
+            viewModel.snackBarFlow.collect { message ->
+                Logger.i{"dope " + message}
+                snackBarHostState.showSnackbar(message)
+            }
+        }
+
         MaterialTheme {
             TabNavigator(
                 HomeTab,
@@ -77,6 +91,7 @@ class TabsScreen : Screen, KoinComponent {
                 }
             ) { tabNavigator ->
                 Scaffold(
+                    scaffoldState = scaffoldState,
                     topBar = {
                         TopAppBar(backgroundColor = white, // Change this to your desired background color
                             contentColor = grey9,
@@ -118,6 +133,7 @@ class TabsScreen : Screen, KoinComponent {
                                 {
                                     IconButton(onClick = {
                                         viewModel.showBackIcon.value = false
+                                        viewModel.nav?.pop()
                                     }) {
                                         Icon(
                                             Icons.Default.ArrowBack,

@@ -28,7 +28,7 @@ abstract class BaseRepository {
                 if (decodeApiError) {
                     try {
                         val content = ex.response.bodyAsText(Charsets.UTF_8)
-                        val apiError = Json.decodeFromString<List<APIError>>(content)
+                        val apiError = Json.decodeFromString<APIError>(content)
                         Response.RecipeAPIError(apiError)
                     } catch (decodingException: Exception) {
                         decodingException.printStackTrace()

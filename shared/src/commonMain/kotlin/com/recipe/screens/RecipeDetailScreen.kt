@@ -4,7 +4,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -44,6 +44,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
+import co.touchlab.kermit.Logger
 import com.recipe.database.DatabaseRepository
 import com.recipe.multiplatformsettings.SessionManager
 import com.recipe.network.model.request.RecipeRequest
@@ -51,6 +52,7 @@ import com.recipe.network.model.response.ExtendedIngredients
 import com.recipe.network.model.response.Steps
 import com.recipe.openBrowser
 import com.recipe.renderHtml
+import com.recipe.screens.components.ErrorView
 import com.recipe.screens.components.ShimmerBox
 import com.recipe.ui.theme.HORIZONTAL_PADDING
 import com.recipe.ui.theme.LARGE_PADDING
@@ -79,7 +81,8 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
 
 class RecipeDetailScreen(
-    private val recipeId: Int?
+    private val recipeId: Int?,
+    private val recipeTitle: String?
 ) : Screen, KoinComponent {
 
     @OptIn(ExperimentalResourceApi::class)
@@ -92,6 +95,7 @@ class RecipeDetailScreen(
         val databaseRepository = get<DatabaseRepository>()
         val scope = rememberCoroutineScope()
         val isLoading = viewModel.isLoading.collectAsState().value
+        val isNetworkError = viewModel.isNetworkError.collectAsState().value
 
         viewModel.isFavourite.value =
             databaseRepository.database.recipesQueries.selectFavouriteInfo(
@@ -124,7 +128,7 @@ class RecipeDetailScreen(
                             response.data.let {
                                 databaseRepository.database.recipesQueries.insertRecipeItems(
                                     id = recipeId?.toLong(),
-                                    title = it?.title,
+                                    title = recipeTitle,
                                     image = it?.image,
                                     servings = it?.servings?.toLong(),
                                     readyInMinutes = it?.readyInMinutes?.toLong(),
@@ -155,6 +159,9 @@ class RecipeDetailScreen(
                                 )
                             }
                         }
+                    } else if (response.apiError != null) {
+                        viewModel.networkErrorMessage = response.apiError.message.toString()
+                        viewModel._isError.value = true
                     }
                 }
             }
@@ -175,7 +182,9 @@ class RecipeDetailScreen(
                         modifier = Modifier
                             .background(grey2)
                     ) {
-                        if (isLoading) {
+                        if (isNetworkError) {
+                            ErrorView("error.json", viewModel.networkErrorMessage)
+                        } else if (isLoading) {
                             BookDetailSkeleton()
                         } else {
 
@@ -277,7 +286,8 @@ class RecipeDetailScreen(
                                 Icon(
                                     modifier = Modifier
                                         .width(35.dp).height(35.dp).clickable {
-                                            viewModel.isFavourite.value = if (viewModel.isFavourite.value == 0) 1 else 0
+                                            viewModel.isFavourite.value =
+                                                if (viewModel.isFavourite.value == 0) 1 else 0
                                             databaseRepository.database.recipesQueries.updateFavourite(
                                                 favourite = viewModel.isFavourite.value.toLong(),
                                                 id = recipeId?.toLong() ?: 0L,
@@ -337,79 +347,85 @@ class RecipeDetailScreen(
                     }
                 }
 
-                item {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(white),
-                    ) {
-                        Spacer(modifier = Modifier.padding(SMALL_PADDING))
-                        Text(
-                            text = "Ingredients for " + viewModel.recipeInfo?.servings + " servings",
+                if (viewModel.recipeInfo != null) {
+
+                    item {
+                        Column(
                             modifier = Modifier
-                                .fillMaxWidth(1f)
-                                .padding(horizontal = HORIZONTAL_PADDING),
-                            textAlign = TextAlign.Left,
-                            lineHeight = 24.sp,
-                            color = grey9,
-                            fontSize = 21.sp,
-                            style = MaterialTheme.typography.subtitle2,
-                            fontWeight = FontWeight.Bold
-                        )
+                                .fillMaxSize()
+                                .background(white),
+                        ) {
+                            Spacer(modifier = Modifier.padding(SMALL_PADDING))
+                            Text(
+                                text = "Ingredients for " + viewModel.recipeInfo?.servings + " servings",
+                                modifier = Modifier
+                                    .fillMaxWidth(1f)
+                                    .padding(horizontal = HORIZONTAL_PADDING),
+                                textAlign = TextAlign.Left,
+                                lineHeight = 24.sp,
+                                color = grey9,
+                                fontSize = 21.sp,
+                                style = MaterialTheme.typography.subtitle2,
+                                fontWeight = FontWeight.Bold
+                            )
 
-                        Spacer(modifier = Modifier.padding(MEDIUM_PADDING))
+                            Spacer(modifier = Modifier.padding(MEDIUM_PADDING))
+                        }
                     }
-                }
 
-                itemsIndexed(viewModel.recipeInfo?.extendedIngredients ?: emptyList()) { _, item ->
-                    IngredientsView(item)
-                }
+                    itemsIndexed(
+                        viewModel.recipeInfo?.extendedIngredients ?: emptyList()
+                    ) { _, item ->
+                        IngredientsView(item)
+                    }
 
-                item {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(grey2),
-                    ) {
-                        Spacer(modifier = Modifier.padding(SMALL_PADDING))
-                        Text(
-                            text = "Preparation",
+                    item {
+                        Column(
                             modifier = Modifier
-                                .padding(horizontal = HORIZONTAL_PADDING)
-                                .fillMaxWidth(1f),
-                            textAlign = TextAlign.Left,
-                            lineHeight = 24.sp,
-                            color = grey9,
-                            style = MaterialTheme.typography.subtitle2,
-                            fontSize = 21.sp,
-                            fontWeight = FontWeight.Bold
-                        )
+                                .fillMaxSize()
+                                .background(grey2),
+                        ) {
+                            Spacer(modifier = Modifier.padding(SMALL_PADDING))
+                            Text(
+                                text = "Preparation",
+                                modifier = Modifier
+                                    .padding(horizontal = HORIZONTAL_PADDING)
+                                    .fillMaxWidth(1f),
+                                textAlign = TextAlign.Left,
+                                lineHeight = 24.sp,
+                                color = grey9,
+                                style = MaterialTheme.typography.subtitle2,
+                                fontSize = 21.sp,
+                                fontWeight = FontWeight.Bold
+                            )
 
-                        Spacer(modifier = Modifier.padding(X_SMALL_PADDING))
+                            Spacer(modifier = Modifier.padding(X_SMALL_PADDING))
 
-                        Text(
-                            modifier = Modifier.padding(horizontal = HORIZONTAL_PADDING),
-                            text = "Total Time " + viewModel.recipeInfo?.readyInMinutes + " min",
-                            textAlign = TextAlign.Center,
-                            color = grey9,
-                            style = MaterialTheme.typography.subtitle2,
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Normal
-                        )
+                            Text(
+                                modifier = Modifier.padding(horizontal = HORIZONTAL_PADDING),
+                                text = "Total Time " + viewModel.recipeInfo?.readyInMinutes + " min",
+                                textAlign = TextAlign.Center,
+                                color = grey9,
+                                style = MaterialTheme.typography.subtitle2,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Normal
+                            )
 
-                        Spacer(modifier = Modifier.padding(SMALL_PADDING))
+                            Spacer(modifier = Modifier.padding(SMALL_PADDING))
 
+                        }
                     }
-                }
 
-                itemsIndexed(
-                    viewModel.recipeInfo?.analyzedInstructions?.getOrNull(0)?.steps ?: emptyList()
-                ) { _, item ->
-                    InstructionsView(item)
-                }
+                    itemsIndexed(
+                        viewModel.recipeInfo?.analyzedInstructions?.getOrNull(0)?.steps
+                            ?: emptyList()
+                    ) { _, item ->
+                        InstructionsView(item)
+                    }
 
-                item {
-                    Spacer(modifier = Modifier.padding(LARGE_PADDING))
+                    item {
+                        Spacer(modifier = Modifier.padding(LARGE_PADDING))
+                    }
                 }
             }
         }
@@ -431,19 +447,23 @@ fun IngredientsView(item: ExtendedIngredients) {
                 text = item.originalName.toString(),
                 textAlign = TextAlign.Left,
                 color = grey9,
+                maxLines = 2,
                 lineHeight = 24.sp,
                 style = MaterialTheme.typography.subtitle2,
                 fontSize = 16.sp,
-                fontWeight = FontWeight.Normal
+                fontWeight = FontWeight.Normal,
+                modifier = Modifier.weight(1f)
             )
+            Spacer(Modifier.width(8.dp))
             Text(
-                text = item.amount.toString() + " " + item.unit,
+                text = "${item.amount} ${item.unit}",
                 textAlign = TextAlign.End,
                 lineHeight = 24.sp,
                 color = grey9,
                 style = MaterialTheme.typography.subtitle2,
                 fontSize = 16.sp,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.wrapContentWidth(align = Alignment.End)
             )
         }
 
@@ -558,46 +578,14 @@ fun BookDetailSkeleton() {
     Column(modifier = Modifier.padding(30.dp)) {
 
         ShimmerBox(
-            modifier = Modifier.size(200.dp, 300.dp).clip(RoundedCornerShape(size = 10.dp))
+            modifier = Modifier.height(100.dp).fillMaxWidth().clip(RoundedCornerShape(size = 10.dp))
                 .align(CenterHorizontally)
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        ShimmerBox(
-            modifier = Modifier.height(16.dp).fillMaxWidth(0.6f)
-                .align(CenterHorizontally).clip(RoundedCornerShape(size = 10.dp))
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        ShimmerBox(
-            modifier = Modifier.height(16.dp).fillMaxWidth(0.45f)
-                .align(CenterHorizontally).clip(RoundedCornerShape(size = 10.dp))
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Row(
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                ShimmerBox(
-                    modifier = Modifier.height(45.dp).weight(1f)
-                        .clip(RoundedCornerShape(size = 10.dp))
-                )
-                Spacer(modifier = Modifier.width(16.dp))
-                ShimmerBox(
-                    modifier = Modifier.height(45.dp).weight(1f)
-                        .clip(RoundedCornerShape(size = 10.dp))
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
         val options =
-            listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "10")
+            listOf("1", "2", "3", "4", "5")
 
         options.forEach { _ ->
             ShimmerBox(
@@ -606,5 +594,20 @@ fun BookDetailSkeleton() {
             )
             Spacer(modifier = Modifier.height(16.dp))
         }
+
+        ShimmerBox(
+            modifier = Modifier.height(300.dp).fillMaxWidth().clip(RoundedCornerShape(size = 10.dp))
+                .align(CenterHorizontally)
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        ShimmerBox(
+            modifier = Modifier.height(300.dp).fillMaxWidth().clip(RoundedCornerShape(size = 10.dp))
+                .align(CenterHorizontally)
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
     }
 }

@@ -9,12 +9,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -25,6 +27,8 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -43,7 +47,6 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import com.recipe.database.DatabaseRepository
 import com.recipe.isConnected
 import com.recipe.multiplatformsettings.SessionManager
-import com.recipe.network.model.response.ResultData
 import com.recipe.ui.theme.MEDIUM_PADDING
 import com.recipe.ui.theme.blue5
 import com.recipe.ui.theme.grey2
@@ -68,20 +71,19 @@ class RecipeScreen : Screen, KoinComponent {
         val viewModel = get<FavouriteViewModel>()
         val sharedViewModel = get<SharedViewModel>()
         val databaseRepository = get<DatabaseRepository>()
-        val sessionManager = get<SessionManager>()
-
-        viewModel.loadFavourite()
 
         val favList = viewModel.favouriteList.value
 
-        FavouriteList(favList = favList, sharedViewModel = sharedViewModel)
+        FavouriteList(favList = favList, sharedViewModel = sharedViewModel, databaseRepository= databaseRepository, viewModel = viewModel)
     }
 
     @Composable
     fun FavouriteList(
         modifier: Modifier = Modifier,
         favList: List<RecipeInfo>,
-        sharedViewModel: SharedViewModel
+        sharedViewModel: SharedViewModel,
+        databaseRepository: DatabaseRepository,
+        viewModel: FavouriteViewModel
     ) {
         val stateLister = rememberLazyListState()
         Column(
@@ -139,7 +141,8 @@ class RecipeScreen : Screen, KoinComponent {
                                 modifier = Modifier.width(300.dp).height(300.dp),
                             )
                             Text(
-                                text = "Search for you favourite recipes and add them here!", modifier = Modifier
+                                text = "Search for you favourite recipes and add them here!",
+                                modifier = Modifier
                                     .fillMaxWidth(1f)
                                     .padding(start = 48.dp, end = 48.dp),
                                 textAlign = TextAlign.Center,
@@ -162,7 +165,9 @@ class RecipeScreen : Screen, KoinComponent {
                 itemsIndexed(favList, key = { _, item -> item.id.toString() }) { _, item ->
                     FavouriteItem(
                         item,
-                        sharedViewModel
+                        sharedViewModel,
+                        databaseRepository,
+                        viewModel
                     )
                 }
             }
@@ -172,7 +177,9 @@ class RecipeScreen : Screen, KoinComponent {
     @Composable
     fun FavouriteItem(
         item: RecipeInfo,
-        sharedViewModel: SharedViewModel
+        sharedViewModel: SharedViewModel,
+        databaseRepository: DatabaseRepository,
+        viewModel: FavouriteViewModel
     ) {
         val navigator = LocalNavigator.currentOrThrow
         Card(
@@ -182,9 +189,11 @@ class RecipeScreen : Screen, KoinComponent {
                 .clickable {
                     sharedViewModel.showBackIcon.value = true
                     sharedViewModel.topBarTitle.value = item.title.toString()
+                    sharedViewModel.nav = navigator
                     navigator.push(
                         RecipeDetailScreen(
-                            recipeId = item.id.toInt()
+                            recipeId = item.id.toInt(),
+                            recipeTitle = item.title
                         )
                     )
                 },
@@ -204,7 +213,6 @@ class RecipeScreen : Screen, KoinComponent {
                         .height(100.dp).padding(end = 8.dp),
                     shape = RoundedCornerShape(8.dp), elevation = 2.dp
                 ) {
-
                     Image(
                         rememberImagePainter(item.image.toString()),
                         contentDescription = null,
@@ -218,14 +226,36 @@ class RecipeScreen : Screen, KoinComponent {
                     modifier = Modifier.weight(1f).padding(top = 20.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    Text(
-                        item.title.toString(),
-                        fontSize = 18.sp,
-                        color = grey9,
-                        maxLines = 2,
-                        fontWeight = FontWeight.Bold,
-                        overflow = TextOverflow.Ellipsis
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(end = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            item.title.toString(),
+                            fontSize = 18.sp,
+                            color = grey9,
+                            maxLines = 2,
+                            fontWeight = FontWeight.Bold,
+                            overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.weight(1f)
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Icon(
+                            modifier = Modifier
+                                .wrapContentWidth(align = Alignment.End)
+                                .width(35.dp).height(35.dp).clickable {
+                                    databaseRepository.database.recipesQueries.updateFavourite(
+                                        favourite = 0,
+                                        id = item.id,
+                                    )
+                                    viewModel.loadFavourite()
+                                },
+                            imageVector = Icons.Filled.Favorite,
+                            contentDescription = "favourite",
+                            tint = grey9
+                        )
+                    }
                     Divider(
                         modifier = Modifier
                             .padding(top = 18.dp, end = 8.dp),
