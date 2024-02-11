@@ -7,7 +7,8 @@ CREATE TABLE RecipeInfo (
     sourceName TEXT,
     summary TEXT,
     sourceUrl TEXT,
-    spoonacularScore INTEGER
+    spoonacularScore INTEGER,
+    favourite INTEGER
 );
 
 CREATE TABLE Ingredients (
@@ -29,6 +30,11 @@ CREATE TABLE Instructions (
     FOREIGN KEY(recipeId) REFERENCES RecipeInfo(id)
 );
 
+updateFavourite:
+UPDATE RecipeInfo
+SET favourite = ?
+WHERE id = ?;
+
 deleteAllInstructions:
 DELETE FROM Instructions WHERE recipeId = ?;
 
@@ -41,6 +47,18 @@ DELETE FROM RecipeInfo WHERE id = ?;
 selectIDInfo:
 SELECT id
 FROM RecipeInfo WHERE id = ?;
+
+selectFavouriteInfo:
+SELECT favourite
+FROM RecipeInfo WHERE id = ?;
+
+selectAllRecipeList:
+SELECT *
+FROM RecipeInfo;
+
+selectAllRecipeListFav:
+SELECT *
+FROM RecipeInfo WHERE favourite = 1;
 
 selectAllRecipes:
 SELECT *
@@ -55,11 +73,11 @@ SELECT *
 FROM Ingredients WHERE recipeId = ?;
 
 insertRecipeItems:
-INSERT INTO RecipeInfo(id, title, image, servings, readyInMinutes, sourceName, summary, sourceUrl, spoonacularScore)
-VALUES ( ?,?, ?, ? ,? , ?, ?, ?, ?);
+INSERT INTO RecipeInfo(id, title, image, servings, readyInMinutes, sourceName, summary, sourceUrl, spoonacularScore,favourite)
+VALUES ( ?,?, ?, ? ,? , ?, ?, ?, ?, ?);
 
 insertFullRecipe:
-INSERT INTO RecipeInfo(id, title, image, servings, readyInMinutes, sourceName, summary, sourceUrl, spoonacularScore)
+INSERT INTO RecipeInfo(id, title, image, servings, readyInMinutes, sourceName, summary, sourceUrl, spoonacularScore, favourite)
 VALUES ?;
 
 insertInstructionsItems:

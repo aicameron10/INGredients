@@ -109,10 +109,6 @@ fun HomeScreenContent(
     sessionManager.setAuthorization(API_KEY)
 
     LaunchedEffect(key1 = sessionManager.getAuthorization()) {
-        // viewModel.fetchRecipeIfNeeded(RecipeRequest(authorization = sessionManager.getAuthorization(), query = "pasta"))
-    }
-
-    LaunchedEffect(key1 = sessionManager.getAuthorization()) {
         viewModel.recipeObserver.filterNotNull().collect { response ->
             if (response.data != null) {
                 viewModel.recipeList = response.data?.results
@@ -183,16 +179,8 @@ fun SearchWithAutocomplete(viewModel: SharedViewModel, sessionManager: SessionMa
                 }
             }
         }
-        val navigator = LocalNavigator.currentOrThrow
         IconButton(onClick = {
-            //showMore = true
-            viewModel.showBackIcon.value = true
-            viewModel.topBarTitle.value = "test"
-            navigator.push(
-                RecipeDetailScreen(
-                    recipeId = 654959
-                )
-            )
+            showMore = true
         }) {
             Icon(
                 FeatherIcons.Filter,

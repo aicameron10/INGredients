@@ -6,7 +6,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,14 +17,14 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Button
-import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Card
 import androidx.compose.material.Divider
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -45,36 +44,35 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
-import cafe.adriel.voyager.navigator.LocalNavigator
-import cafe.adriel.voyager.navigator.currentOrThrow
-import co.touchlab.kermit.Logger
 import com.recipe.database.DatabaseRepository
 import com.recipe.multiplatformsettings.SessionManager
 import com.recipe.network.model.request.RecipeRequest
 import com.recipe.network.model.response.ExtendedIngredients
-import com.recipe.network.model.response.Ingredients
-import com.recipe.network.model.response.InstructionsList
-import com.recipe.network.model.response.RecipeInfoResponse
 import com.recipe.network.model.response.Steps
 import com.recipe.openBrowser
 import com.recipe.renderHtml
 import com.recipe.screens.components.ShimmerBox
-import com.recipe.ui.theme.*
+import com.recipe.ui.theme.HORIZONTAL_PADDING
+import com.recipe.ui.theme.LARGE_PADDING
+import com.recipe.ui.theme.MEDIUM_PADDING
+import com.recipe.ui.theme.SMALL_PADDING
+import com.recipe.ui.theme.X_SMALL_PADDING
+import com.recipe.ui.theme.grey1
+import com.recipe.ui.theme.grey2
+import com.recipe.ui.theme.grey3
+import com.recipe.ui.theme.grey9
+import com.recipe.ui.theme.white
+import com.recipe.ui.theme.yellow
 import com.recipe.utils.RatingCalculator
 import com.recipe.utils.StarType
 import com.recipe.viewmodels.RecipeDetailViewModel
-import com.recipe.viewmodels.SharedViewModel
 import com.seiko.imageloader.rememberImagePainter
 import compose.icons.FeatherIcons
-import compose.icons.feathericons.BookOpen
 import compose.icons.feathericons.Clock
-import compose.icons.feathericons.Edit
 import compose.icons.feathericons.Heart
-import compose.icons.feathericons.MoreVertical
 import compose.icons.feathericons.ThumbsUp
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 import org.koin.core.component.KoinComponent
@@ -90,33 +88,24 @@ class RecipeDetailScreen(
     override fun Content() {
 
         val viewModel = get<RecipeDetailViewModel>()
-        val sharedViewModel = get<SharedViewModel>()
         val sessionManager = get<SessionManager>()
         val databaseRepository = get<DatabaseRepository>()
-
-        val navigator = LocalNavigator.currentOrThrow
         val scope = rememberCoroutineScope()
         val isLoading = viewModel.isLoading.collectAsState().value
-        //val recipeInstructionsResponse by viewModel.recipeInstructionsObserver.collectAsState()
 
-        val databaseRecipe =
-            databaseRepository.database.recipesQueries.selectAllRecipes(recipeId?.toLong() ?: 0L)
-                .executeAsList()
-
-        viewModel.recipeInfo = Json.decodeFromString(
-            RecipeInfoResponse.serializer(),
-            sessionManager.getJson().toString()
-        )
-
+        viewModel.isFavourite.value =
+            databaseRepository.database.recipesQueries.selectFavouriteInfo(
+                recipeId?.toLong() ?: 0L
+            ).executeAsOneOrNull()?.favourite?.toInt() ?: 0
 
         LaunchedEffect(key1 = sessionManager.getAuthorization()) {
             scope.launch {
-                /*viewModel.getRecipeInformation(
+                viewModel.getRecipeInformation(
                     RecipeRequest(
                         authorization = sessionManager.getAuthorization(),
                         id = recipeId.toString()
                     )
-                )*/
+                )
             }
         }
 
@@ -126,37 +115,45 @@ class RecipeDetailScreen(
                     if (response.data != null) {
                         viewModel.recipeInfo = response.data
 
-                        response.data.let {
-                            databaseRepository.database.recipesQueries.insertRecipeItems(
-                                id = recipeId?.toLong(),
-                                title = it?.title,
-                                image = it?.image,
-                                servings = it?.servings?.toLong(),
-                                readyInMinutes = it?.readyInMinutes?.toLong(),
-                                sourceName = it?.sourceName,
-                                summary = it?.summary,
-                                sourceUrl = it?.sourceUrl,
-                                spoonacularScore = it?.spoonacularScore?.toLong()
-                            )
-                        }
+                        val existingId =
+                            databaseRepository.database.recipesQueries.selectAllRecipes(
+                                recipeId?.toLong() ?: 0L
+                            ).executeAsOneOrNull()
 
-                        response.data?.analyzedInstructions?.getOrNull(0)?.steps?.forEach {
-                            databaseRepository.database.recipesQueries.insertInstructionsItems(
-                                number = it.number?.toLong(),
-                                step = it.step,
-                                ingredients = it.ingredients.joinToString { it.name.toString() },
-                                equipment = it.equipment.joinToString { it.name.toString() },
-                                recipeId = recipeId?.toLong()
-                            )
-                        }
+                        if (existingId == null) {
+                            response.data.let {
+                                databaseRepository.database.recipesQueries.insertRecipeItems(
+                                    id = recipeId?.toLong(),
+                                    title = it?.title,
+                                    image = it?.image,
+                                    servings = it?.servings?.toLong(),
+                                    readyInMinutes = it?.readyInMinutes?.toLong(),
+                                    sourceName = it?.sourceName,
+                                    summary = it?.summary,
+                                    sourceUrl = it?.sourceUrl,
+                                    spoonacularScore = it?.spoonacularScore?.toLong(),
+                                    favourite = 0,
+                                )
+                            }
 
-                        response.data?.extendedIngredients?.forEach {
-                            databaseRepository.database.recipesQueries.insertIngredientsItems(
-                                amount = it.amount?.toLong(),
-                                originalName = it.original,
-                                unit = it.unit,
-                                recipeId = recipeId?.toLong()
-                            )
+                            response.data?.analyzedInstructions?.getOrNull(0)?.steps?.forEach { step ->
+                                databaseRepository.database.recipesQueries.insertInstructionsItems(
+                                    number = step.number?.toLong(),
+                                    step = step.step,
+                                    ingredients = step.ingredients.joinToString { it.name.toString() },
+                                    equipment = step.equipment.joinToString { it.name.toString() },
+                                    recipeId = recipeId?.toLong()
+                                )
+                            }
+
+                            response.data?.extendedIngredients?.forEach {
+                                databaseRepository.database.recipesQueries.insertIngredientsItems(
+                                    amount = it.amount?.toLong(),
+                                    originalName = it.original,
+                                    unit = it.unit,
+                                    recipeId = recipeId?.toLong()
+                                )
+                            }
                         }
                     }
                 }
@@ -276,15 +273,20 @@ class RecipeDetailScreen(
                                         )
                                     }
                                 }
+
                                 Icon(
                                     modifier = Modifier
-                                        .width(35.dp).height(35.dp),
-                                    imageVector = FeatherIcons.Heart,
+                                        .width(35.dp).height(35.dp).clickable {
+                                            viewModel.isFavourite.value = if (viewModel.isFavourite.value == 0) 1 else 0
+                                            databaseRepository.database.recipesQueries.updateFavourite(
+                                                favourite = viewModel.isFavourite.value.toLong(),
+                                                id = recipeId?.toLong() ?: 0L,
+                                            )
+                                        },
+                                    imageVector = if (viewModel.isFavourite.value == 0) FeatherIcons.Heart else Icons.Filled.Favorite,
                                     contentDescription = "favourite",
                                     tint = grey9
                                 )
-                                //FeatherIcons.Heart
-                                //Icons.Filled.Favorite
                             }
 
                             Spacer(modifier = Modifier.padding(SMALL_PADDING))

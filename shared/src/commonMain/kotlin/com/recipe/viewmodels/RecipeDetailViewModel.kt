@@ -25,6 +25,8 @@ class RecipeDetailViewModel(
         MutableStateFlow(null)
     val recipeInfoObserver: StateFlow<Response<RecipeInfoResponse>?> = _recipeInfo
 
+    val isFavourite = MutableStateFlow(0)
+
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> get() = _isLoading
 
