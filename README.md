@@ -47,6 +47,7 @@ Refinement of State Management: While StateFlow works well, integrating a more a
 Strings: for speed of development , i did hard code strings, but i do know to use relevant string files for both platforms.
 Compose views: make more components re-usable for a bigger project. Seperate into smaller composable classes.
 Tests: Write more comprehensive test coverage.
+Secure the API-Key, for the ease of the assignment, i just stored it in Preferences and it is not secure.
 
 Conclusion:
 The architecture designed for my application provides a solid foundation for a scalable and maintainable mobile application across multiple platforms(iOS and Android). By using Kotlin Multiplatform, it can reduce the overhead of maintaining separate codebases and ensure consistency in business logic across platforms. 
