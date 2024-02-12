@@ -25,7 +25,6 @@ android {
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
-            exclude("META-INF/LICENSE.md")
         }
     }
     buildTypes {
