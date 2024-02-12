@@ -49,6 +49,9 @@ Compose views: make more components re-usable for a bigger project. Seperate int
 Tests: Write more comprehensive test coverage.
 Secure the API-Key, for the ease of the assignment, i just stored it in Preferences and it is not secure.
 Android 13 - splash screen
+Dark Mode- add more time to UX
+Add toogle to switch dark mode
+Unit Tests for common code
 
 Conclusion:
 The architecture designed for my application provides a solid foundation for a scalable and maintainable mobile application across multiple platforms(iOS and Android). By using Kotlin Multiplatform, it can reduce the overhead of maintaining separate codebases and ensure consistency in business logic across platforms. 
