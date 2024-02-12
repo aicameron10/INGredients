@@ -6,20 +6,6 @@ plugins {
     id("app.cash.sqldelight") version "2.0.1"
 }
 
-dependencies {
-    androidTestImplementation(libs.mockk.android)
-    androidTestImplementation (libs.koin.test)
-    androidTestImplementation(libs.ktor.client.mock)
-
-    implementation(libs.ktor.client.mock)
-    implementation(libs.ktor.client.android)
-    implementation(libs.ktor.client.content.negotiation)
-    implementation(libs.ktor.serialization.kotlinx.json)
-    implementation(libs.kotlinx.coroutines.test)
-    implementation(libs.koin.test.junit5)
-
-}
-
 android {
     namespace = "com.recipe.android"
     compileSdk = 34
@@ -39,6 +25,7 @@ android {
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            exclude("META-INF/LICENSE.md")
         }
     }
     buildTypes {
