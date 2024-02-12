@@ -44,6 +44,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
+import co.touchlab.kermit.Logger
 import com.recipe.database.DatabaseRepository
 import com.recipe.multiplatformsettings.SessionManager
 import com.recipe.network.model.request.RecipeRequest
@@ -119,7 +120,7 @@ class RecipeDetailScreen(
                         )
                     )
                 } else {
-                    viewModel.recipeInfo = viewModel.getDataBaseList(recipeId ?: 0)
+                    viewModel.recipeInfo = viewModel.getDatabaseList(recipeId ?: 0)
                 }
             }
         }
@@ -468,7 +469,7 @@ fun InstructionsView(item: Steps) {
             Row(
                 modifier = Modifier.fillMaxWidth().padding(all = 8.dp),
                 verticalAlignment = Alignment.Top,
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.Start
             ) {
                 Text(
                     modifier = Modifier.padding(end = HORIZONTAL_PADDING),
