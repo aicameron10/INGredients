@@ -19,6 +19,10 @@ import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
+import androidx.compose.material.Snackbar
+import androidx.compose.material.SnackbarDuration
+import androidx.compose.material.SnackbarHost
+import androidx.compose.material.SnackbarHostState
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
@@ -71,8 +75,8 @@ class TabsScreen : Screen, KoinComponent {
 
         LaunchedEffect(snackBarHostState) {
             viewModel.snackBarFlow.collect { message ->
-                Logger.i{"dope " + message}
-                snackBarHostState.showSnackbar(message)
+                Logger.i { "dope " + message }
+                snackBarHostState.showSnackbar(message,duration = SnackbarDuration.Long)
             }
         }
 
@@ -92,6 +96,7 @@ class TabsScreen : Screen, KoinComponent {
             ) { tabNavigator ->
                 Scaffold(
                     scaffoldState = scaffoldState,
+                    snackbarHost = { CustomSnackbarHost(scaffoldState.snackbarHostState) },
                     topBar = {
                         TopAppBar(backgroundColor = white, // Change this to your desired background color
                             contentColor = grey9,
@@ -168,6 +173,18 @@ class TabsScreen : Screen, KoinComponent {
                     }
                 )
             }
+        }
+    }
+
+    @Composable
+    fun CustomSnackbarHost(snackbarHostState: SnackbarHostState) {
+        SnackbarHost(hostState = snackbarHostState) { data ->
+            Snackbar(
+                snackbarData = data,
+                backgroundColor = grey9,
+                contentColor = white,
+                actionColor = white
+            )
         }
     }
 

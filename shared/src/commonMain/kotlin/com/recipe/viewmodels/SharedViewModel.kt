@@ -1,6 +1,5 @@
 package com.recipe.viewmodels
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf

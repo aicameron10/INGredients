@@ -23,7 +23,9 @@ data class RecipeInfoResponse(
     var dishTypes: List<String> = emptyList(),
     var extendedIngredients: List<ExtendedIngredients> = emptyList(),
     var analyzedInstructions: List<InstructionsList> = emptyList(),
-    var summary: String? = null
+    var summary: String? = null,
+    var favourite: Int? = 0
+
 )
 
 @Serializable

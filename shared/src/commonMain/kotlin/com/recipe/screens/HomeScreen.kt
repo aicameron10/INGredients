@@ -384,6 +384,7 @@ fun RecipeList(
                                     .padding(start = 48.dp, end = 48.dp),
                                 textAlign = TextAlign.Center,
                                 color = grey9,
+                                fontSize = 19.sp,
                                 style = MaterialTheme.typography.subtitle2,
                                 fontWeight = FontWeight.Bold
                             )

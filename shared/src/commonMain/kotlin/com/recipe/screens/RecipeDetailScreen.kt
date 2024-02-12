@@ -103,15 +103,24 @@ class RecipeDetailScreen(
                 recipeId?.toLong() ?: 0L
             ).executeAsOneOrNull()?.favourite?.toInt() ?: 0
 
+        val existingId =
+            databaseRepository.database.recipesQueries.selectAllRecipes(
+                recipeId?.toLong() ?: 0L
+            ).executeAsOneOrNull()
+
         LaunchedEffect(key1 = sessionManager.getAuthorization()) {
             scope.launch {
                 viewModel.recipeInfo = null
-                viewModel.getRecipeInformation(
-                    RecipeRequest(
-                        authorization = sessionManager.getAuthorization(),
-                        id = recipeId.toString()
+                if (existingId == null) {
+                    viewModel.getRecipeInformation(
+                        RecipeRequest(
+                            authorization = sessionManager.getAuthorization(),
+                            id = recipeId.toString()
+                        )
                     )
-                )
+                } else {
+                    viewModel.recipeInfo = viewModel.getDataBaseList(recipeId ?: 0)
+                }
             }
         }
 
@@ -121,45 +130,13 @@ class RecipeDetailScreen(
                     if (response.data != null) {
                         viewModel.recipeInfo = response.data
 
-                        val existingId =
-                            databaseRepository.database.recipesQueries.selectAllRecipes(
-                                recipeId?.toLong() ?: 0L
-                            ).executeAsOneOrNull()
-
                         if (existingId == null) {
-                            response.data.let {
-                                databaseRepository.database.recipesQueries.insertRecipeItems(
-                                    id = recipeId?.toLong(),
-                                    title = recipeTitle.toString(),
-                                    image = recipeImage.toString(),
-                                    servings = it?.servings?.toLong(),
-                                    readyInMinutes = it?.readyInMinutes?.toLong(),
-                                    sourceName = it?.sourceName,
-                                    summary = it?.summary,
-                                    sourceUrl = it?.sourceUrl,
-                                    spoonacularScore = it?.spoonacularScore?.toLong(),
-                                    favourite = 0,
-                                )
-                            }
-
-                            response.data?.analyzedInstructions?.getOrNull(0)?.steps?.forEach { step ->
-                                databaseRepository.database.recipesQueries.insertInstructionsItems(
-                                    number = step.number?.toLong(),
-                                    step = step.step,
-                                    ingredients = step.ingredients.joinToString { it.name.toString() },
-                                    equipment = step.equipment.joinToString { it.name.toString() },
-                                    recipeId = recipeId?.toLong()
-                                )
-                            }
-
-                            response.data?.extendedIngredients?.forEach {
-                                databaseRepository.database.recipesQueries.insertIngredientsItems(
-                                    amount = it.amount?.toLong(),
-                                    originalName = it.original,
-                                    unit = it.unit,
-                                    recipeId = recipeId?.toLong()
-                                )
-                            }
+                            viewModel.saveRecipe(
+                                data = response.data,
+                                recipeId = recipeId ?: 0,
+                                recipeTitle = recipeTitle.toString(),
+                                recipeImage = recipeImage.toString()
+                            )
                         }
                     } else if (response.apiError != null) {
                         viewModel.networkErrorMessage = response.apiError.message.toString()

@@ -34,5 +34,4 @@ class FavouriteViewModel(
     fun loadFavourite() {
         _favouriteList.value = databaseRepository.database.recipesQueries.selectAllRecipeListFav().executeAsList().reversed()
     }
-
 }
