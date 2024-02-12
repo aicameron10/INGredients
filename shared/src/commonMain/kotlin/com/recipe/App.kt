@@ -7,10 +7,6 @@ import cafe.adriel.voyager.navigator.NavigatorDisposeBehavior
 import com.recipe.ui.theme.AppTheme
 import com.recipe.screens.SplashScreen
 
-interface Platform {
-    val name: String
-}
-
 @Composable
 fun App() {
     AppTheme {
@@ -21,8 +17,6 @@ fun App() {
         )
     }
 }
-
-expect fun getPlatform(): Platform
 
 expect fun getAppVersion(): String
 

@@ -18,7 +18,7 @@ import org.koin.dsl.module
 import org.koin.test.KoinTest
 import org.koin.test.junit5.KoinTestExtension
 @OptIn(ExperimentalCoroutinesApi::class)
-class RecipeRepositoryKmmTest : KoinTest {
+class RecipeRepositoryTest : KoinTest {
 
     companion object {
         const val ID = "id"

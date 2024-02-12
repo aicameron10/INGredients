@@ -12,6 +12,14 @@
 		2152FB042600AC8F00CF470E /* iOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2152FB032600AC8F00CF470E /* iOSApp.swift */; };
 		7555FF83242A565900829871 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7555FF82242A565900829871 /* ContentView.swift */; };
 		BC12FE20EF504C7A18A0E30B /* Pods_iosApp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A374B8E6882081665E236314 /* Pods_iosApp.framework */; };
+		D62292842B7AE06E009FE963 /* internet.json in Resources */ = {isa = PBXBuildFile; fileRef = D622927C2B7AE06D009FE963 /* internet.json */; };
+		D62292852B7AE06E009FE963 /* error.json in Resources */ = {isa = PBXBuildFile; fileRef = D622927D2B7AE06D009FE963 /* error.json */; };
+		D62292862B7AE06E009FE963 /* ingredients.json in Resources */ = {isa = PBXBuildFile; fileRef = D622927E2B7AE06D009FE963 /* ingredients.json */; };
+		D62292872B7AE06E009FE963 /* fav.json in Resources */ = {isa = PBXBuildFile; fileRef = D622927F2B7AE06D009FE963 /* fav.json */; };
+		D62292882B7AE06E009FE963 /* third.json in Resources */ = {isa = PBXBuildFile; fileRef = D62292802B7AE06D009FE963 /* third.json */; };
+		D62292892B7AE06E009FE963 /* first.json in Resources */ = {isa = PBXBuildFile; fileRef = D62292812B7AE06D009FE963 /* first.json */; };
+		D622928A2B7AE06E009FE963 /* ghost.json in Resources */ = {isa = PBXBuildFile; fileRef = D62292822B7AE06D009FE963 /* ghost.json */; };
+		D622928B2B7AE06E009FE963 /* second.json in Resources */ = {isa = PBXBuildFile; fileRef = D62292832B7AE06E009FE963 /* second.json */; };
 		D6A705F72B778EF600DFCC4A /* ms_sans_serif_regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D6A705F62B778EF600DFCC4A /* ms_sans_serif_regular.ttf */; };
 		D6A705F92B778EFE00DFCC4A /* dm_sans.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D6A705F82B778EFE00DFCC4A /* dm_sans.ttf */; };
 /* End PBXBuildFile section */
@@ -24,6 +32,14 @@
 		7555FF82242A565900829871 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		7555FF8C242A565B00829871 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A374B8E6882081665E236314 /* Pods_iosApp.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_iosApp.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		D622927C2B7AE06D009FE963 /* internet.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = internet.json; sourceTree = "<group>"; };
+		D622927D2B7AE06D009FE963 /* error.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = error.json; sourceTree = "<group>"; };
+		D622927E2B7AE06D009FE963 /* ingredients.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = ingredients.json; sourceTree = "<group>"; };
+		D622927F2B7AE06D009FE963 /* fav.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = fav.json; sourceTree = "<group>"; };
+		D62292802B7AE06D009FE963 /* third.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = third.json; sourceTree = "<group>"; };
+		D62292812B7AE06D009FE963 /* first.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = first.json; sourceTree = "<group>"; };
+		D62292822B7AE06D009FE963 /* ghost.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = ghost.json; sourceTree = "<group>"; };
+		D62292832B7AE06E009FE963 /* second.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = second.json; sourceTree = "<group>"; };
 		D6A705F62B778EF600DFCC4A /* ms_sans_serif_regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = ms_sans_serif_regular.ttf; sourceTree = "<group>"; };
 		D6A705F82B778EFE00DFCC4A /* dm_sans.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = dm_sans.ttf; sourceTree = "<group>"; };
 		D74D4DAD637EDD242BF22F11 /* Pods-iosApp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-iosApp.release.xcconfig"; path = "Target Support Files/Pods-iosApp/Pods-iosApp.release.xcconfig"; sourceTree = "<group>"; };
@@ -88,6 +104,14 @@
 		7555FF7D242A565900829871 /* iosApp */ = {
 			isa = PBXGroup;
 			children = (
+				D622927D2B7AE06D009FE963 /* error.json */,
+				D622927F2B7AE06D009FE963 /* fav.json */,
+				D62292812B7AE06D009FE963 /* first.json */,
+				D62292822B7AE06D009FE963 /* ghost.json */,
+				D622927E2B7AE06D009FE963 /* ingredients.json */,
+				D622927C2B7AE06D009FE963 /* internet.json */,
+				D62292832B7AE06E009FE963 /* second.json */,
+				D62292802B7AE06D009FE963 /* third.json */,
 				D6A705F62B778EF600DFCC4A /* ms_sans_serif_regular.ttf */,
 				D6A705F82B778EFE00DFCC4A /* dm_sans.ttf */,
 				058557BA273AAA24004C7B11 /* Assets.xcassets */,
@@ -160,9 +184,17 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D62292852B7AE06E009FE963 /* error.json in Resources */,
 				D6A705F92B778EFE00DFCC4A /* dm_sans.ttf in Resources */,
+				D62292892B7AE06E009FE963 /* first.json in Resources */,
+				D622928B2B7AE06E009FE963 /* second.json in Resources */,
+				D62292882B7AE06E009FE963 /* third.json in Resources */,
+				D62292842B7AE06E009FE963 /* internet.json in Resources */,
 				058557D9273AAEEB004C7B11 /* Preview Assets.xcassets in Resources */,
 				058557BB273AAA24004C7B11 /* Assets.xcassets in Resources */,
+				D62292872B7AE06E009FE963 /* fav.json in Resources */,
+				D622928A2B7AE06E009FE963 /* ghost.json in Resources */,
+				D62292862B7AE06E009FE963 /* ingredients.json in Resources */,
 				D6A705F72B778EF600DFCC4A /* ms_sans_serif_regular.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

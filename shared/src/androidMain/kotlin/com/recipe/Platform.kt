@@ -15,17 +15,10 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.core.text.HtmlCompat
 import com.recipe.common.R
 
-
-class AndroidPlatform : Platform {
-    override val name: String = "Android ${Build.VERSION.SDK_INT}"
-}
-
 @Composable
 fun MainView() {
     App()
 }
-
-actual fun getPlatform(): Platform = AndroidPlatform()
 
 actual fun getAppVersion(): String {
     val packageInfo: PackageInfo = RecipeApp.appContext.packageManager.getPackageInfo(

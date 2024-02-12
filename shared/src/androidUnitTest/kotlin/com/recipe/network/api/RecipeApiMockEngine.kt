@@ -1,6 +1,6 @@
 package com.recipe.network.api
 
-import com.recipe.network.api.RecipeRepositoryKmmTest.Companion.ID
+import com.recipe.network.api.RecipeRepositoryTest.Companion.ID
 import com.recipe.utils.BaseApiMockEngine
 import io.ktor.client.*
 import io.ktor.client.engine.mock.*

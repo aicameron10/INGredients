@@ -3,23 +3,13 @@ package com.recipe
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.platform.Typeface
 import androidx.compose.ui.window.ComposeUIViewController
-import kotlinx.cinterop.ExperimentalForeignApi
 import org.jetbrains.skia.FontStyle
 import org.jetbrains.skia.Typeface
 import platform.Foundation.NSBundle
 import platform.Foundation.NSURL
 import platform.UIKit.UIApplication
-import platform.UIKit.UIDevice
-
-class IOSPlatform : Platform {
-    override val name: String =
-        UIDevice.currentDevice.systemName() + " " + UIDevice.currentDevice.systemVersion
-}
 
 fun MainViewController() = ComposeUIViewController { App() }
-
-actual fun getPlatform(): Platform = IOSPlatform()
-
 actual fun getAppVersion(): String {
     val version = NSBundle.mainBundle.infoDictionary?.get("CFBundleShortVersionString") as? String
         ?: "Unknown"

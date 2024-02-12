@@ -145,7 +145,7 @@ class FavouriteScreen : Screen, KoinComponent {
                                     .fillMaxWidth(1f)
                                     .padding(start = 48.dp, end = 48.dp),
                                 textAlign = TextAlign.Center,
-                                color = grey9,
+                                color = grey5,
                                 style = MaterialTheme.typography.subtitle2,
                                 fontWeight = FontWeight.Bold
 
