@@ -66,6 +66,8 @@ JDK (Java Development Kit)
 Android Studio (latest version recommended as it provides the best support for KMM)
 Xcode (if you are on macOS and plan to run the iOS application)
 
+https://www.jetbrains.com/help/kotlin-multiplatform-dev/compose-multiplatform-setup.html
+
 Steps:
 Clone the Repository:
 
