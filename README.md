@@ -52,6 +52,7 @@ Android 13 - splash screen
 Dark Mode- add more time to UX
 Add toogle to switch dark mode
 Unit Tests for common code
+Compose multiplatform - still in Beta - dependency issues
 
 Conclusion:
 The architecture designed for my application provides a solid foundation for a scalable and maintainable mobile application across multiple platforms(iOS and Android). By using Kotlin Multiplatform, it can reduce the overhead of maintaining separate codebases and ensure consistency in business logic across platforms. 
@@ -65,6 +66,8 @@ Git
 JDK (Java Development Kit)
 Android Studio (latest version recommended as it provides the best support for KMM)
 Xcode (if you are on macOS and plan to run the iOS application)
+
+https://www.jetbrains.com/help/kotlin-multiplatform-dev/compose-multiplatform-setup.html
 
 Steps:
 Clone the Repository:
