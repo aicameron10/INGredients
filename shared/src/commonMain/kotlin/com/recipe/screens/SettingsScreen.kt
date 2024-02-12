@@ -100,7 +100,7 @@ fun Options() {
                         style = MaterialTheme.typography.subtitle2,
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp,
-                        color = grey9
+                        color = grey5
                     )
 
                     Switch(
@@ -256,7 +256,7 @@ private fun OptionsItemStyle(
                         style = MaterialTheme.typography.subtitle2,
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp,
-                        color = grey9
+                        color = grey5
                     )
 
                     Spacer(modifier = Modifier.height(4.dp))

@@ -33,9 +33,15 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Scaffold
+import androidx.compose.material.Snackbar
+import androidx.compose.material.SnackbarDuration
+import androidx.compose.material.SnackbarHost
+import androidx.compose.material.SnackbarHostState
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
 import androidx.compose.material.TextFieldDefaults
+import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -98,7 +104,35 @@ class HomeScreen : Screen, KoinComponent {
         val viewModel = get<SharedViewModel>()
         val sessionManager = get<SessionManager>()
         viewModel.loadRecentViewed()
-        HomeScreenContent(viewModel, sessionManager)
+
+        val scaffoldState = rememberScaffoldState()
+
+        val snackBarHostState = scaffoldState.snackbarHostState
+
+        LaunchedEffect(snackBarHostState) {
+            viewModel.snackBarFlow.collect { message ->
+                snackBarHostState.showSnackbar(message,duration = SnackbarDuration.Short)
+            }
+        }
+
+        Scaffold(
+            scaffoldState = scaffoldState,
+            snackbarHost = { CustomSnackbarHost(scaffoldState.snackbarHostState) },
+            content = { HomeScreenContent(viewModel, sessionManager) }
+        )
+    }
+}
+
+@Composable
+fun CustomSnackbarHost(snackbarHostState: SnackbarHostState) {
+    SnackbarHost(hostState = snackbarHostState) { data ->
+        Snackbar(
+            modifier = Modifier.padding(bottom = 100.dp),
+            snackbarData = data,
+            backgroundColor = grey9,
+            contentColor = white,
+            actionColor = white
+        )
     }
 }
 
@@ -116,12 +150,15 @@ fun HomeScreenContent(
                     if (response.data?.results?.isNotEmpty() == true) {
                         viewModel.recipeList = response.data?.results
                     } else {
+                        viewModel.recipeList = null
                         viewModel.showSnackBar("Empty results, please try again!")
                     }
                 }
+
                 response.apiError != null -> {
                     viewModel.showSnackBar(response.apiError.message.toString())
                 }
+
                 else -> {
                     viewModel.showSnackBar("Something went wrong, please try again!")
                 }
@@ -287,7 +324,7 @@ fun RecentlyViewedItem(
     Column(
         modifier = Modifier
             .width(130.dp)
-            .height(200.dp)
+            .height(160.dp)
             .clickable {
                 sharedViewModel.showBackIcon.value = true
                 sharedViewModel.topBarTitle.value = item.title.toString()
@@ -340,18 +377,47 @@ fun RecipeList(
 ) {
     val stateLister = rememberLazyListState()
     Column(
-        modifier = modifier.fillMaxWidth().background(white).fillMaxHeight().padding(top = 54.dp)
+        modifier = modifier.fillMaxWidth().fillMaxHeight().padding(top = 54.dp)
     ) {
-        when {
-            !isConnected() -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
+        if (recipeList.isEmpty()) {
+            val recentList = sharedViewModel.recentList.value
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.TopCenter
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
+                    Spacer(modifier = Modifier.padding(MEDIUM_PADDING))
+                    if (sharedViewModel.recentList.value.isNotEmpty()) {
+                        Text(
+                            text = "Recently viewed recipes.", modifier = Modifier
+                                .fillMaxWidth(1f)
+                                .padding(start = 48.dp, end = 48.dp),
+                            textAlign = TextAlign.Center,
+                            color = grey5,
+                            fontSize = 19.sp,
+                            style = MaterialTheme.typography.subtitle2,
+                            fontWeight = FontWeight.Bold
+                        )
+
+                        Spacer(modifier = Modifier.padding(SMALL_PADDING))
+
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(16.dp),
+                            contentPadding = PaddingValues(start = 16.dp, end = 16.dp)
+                        ) {
+                            itemsIndexed(
+                                items = recentList,
+                                key = { _, item -> item.id }) { _, item ->
+                                RecentlyViewedItem(item = item, sharedViewModel)
+                            }
+                        }
+                    }
+
+                    if (!isConnected()) {
+
                         val composition = rememberKottieComposition(
                             spec = KottieCompositionSpec.File("internet.json")
                         )
@@ -359,79 +425,42 @@ fun RecipeList(
                         val animationState by animateKottieCompositionAsState(
                             composition = composition,
                             speed = 1f,
-                            iterations = 5
+                            iterations = 1
                         )
 
                         KottieAnimation(
                             composition = composition,
                             progress = { animationState.progress },
-                            modifier = Modifier.width(300.dp).height(300.dp),
+                            modifier = Modifier.width(280.dp).height(250.dp),
                         )
-                    }
-                }
-            }
-            else -> {
-                if (recipeList.isEmpty()) {
-                    val recentList = sharedViewModel.recentList.value
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.TopCenter
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Spacer(modifier = Modifier.padding(MEDIUM_PADDING))
-                            if (sharedViewModel.recentList.value.isNotEmpty()) {
-                                Text(
-                                    text = "Recently viewed recipes.", modifier = Modifier
-                                        .fillMaxWidth(1f)
-                                        .padding(start = 48.dp, end = 48.dp),
-                                    textAlign = TextAlign.Center,
-                                    color = grey9,
-                                    fontSize = 19.sp,
-                                    style = MaterialTheme.typography.subtitle2,
-                                    fontWeight = FontWeight.Bold
-                                )
+                    } else {
 
-                                Spacer(modifier = Modifier.padding(SMALL_PADDING))
-                                LazyRow(
-                                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp)
-                                ) {
-                                    itemsIndexed(
-                                        items = recentList,
-                                        key = { _, item -> item.id }) { _, item ->
-                                        RecentlyViewedItem(item = item, sharedViewModel)
-                                    }
-                                }
-                            }
+                        val composition = rememberKottieComposition(
+                            spec = KottieCompositionSpec.File("ingredients.json")
+                        )
 
-                            val composition = rememberKottieComposition(
-                                spec = KottieCompositionSpec.File("ingredients.json")
-                            )
+                        val animationState by animateKottieCompositionAsState(
+                            composition = composition,
+                            speed = 1f,
+                            iterations = 1
+                        )
 
-                            val animationState by animateKottieCompositionAsState(
-                                composition = composition,
-                                speed = 1f,
-                                iterations = 1
-                            )
+                        KottieAnimation(
+                            composition = composition,
+                            progress = { animationState.progress },
+                            modifier = Modifier.width(280.dp).height(220.dp),
+                        )
 
-                            KottieAnimation(
-                                composition = composition,
-                                progress = { animationState.progress },
-                                modifier = Modifier.width(280.dp).height(250.dp),
-                            )
-                            Text(
-                                text = "Start your search for amazing recipes!", modifier = Modifier
-                                    .fillMaxWidth(1f)
-                                    .padding(start = 48.dp, end = 48.dp),
-                                textAlign = TextAlign.Center,
-                                color = grey9,
-                                style = MaterialTheme.typography.subtitle2,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
+                        Text(
+                            text = "Start your search for amazing recipes!",
+                            modifier = Modifier
+                                .fillMaxWidth(1f)
+                                .padding(start = 48.dp, end = 48.dp),
+                            textAlign = TextAlign.Center,
+                            color = grey5,
+                            style = MaterialTheme.typography.subtitle2,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
             }
@@ -452,6 +481,7 @@ fun RecipeList(
         }
     }
 }
+
 
 @Composable
 fun RecipeItem(

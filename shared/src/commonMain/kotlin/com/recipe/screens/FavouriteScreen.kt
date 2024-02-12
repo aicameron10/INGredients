@@ -86,9 +86,9 @@ class FavouriteScreen : Screen, KoinComponent {
     ) {
         val stateLister = rememberLazyListState()
         Column(
-            modifier = modifier.fillMaxWidth().background(white).fillMaxHeight()
+            modifier = modifier.fillMaxWidth().fillMaxHeight()
         ) {
-            if (!isConnected()) {
+            if (!isConnected() && favList.isEmpty()) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center

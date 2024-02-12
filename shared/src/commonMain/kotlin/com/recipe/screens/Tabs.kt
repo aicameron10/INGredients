@@ -68,16 +68,6 @@ class TabsScreen : Screen, KoinComponent {
 
         val viewModel = get<SharedViewModel>()
 
-        val scaffoldState = rememberScaffoldState()
-
-        val snackBarHostState = scaffoldState.snackbarHostState
-
-        LaunchedEffect(snackBarHostState) {
-            viewModel.snackBarFlow.collect { message ->
-                snackBarHostState.showSnackbar(message,duration = SnackbarDuration.Long)
-            }
-        }
-
         MaterialTheme {
             TabNavigator(
                 HomeTab,
@@ -93,8 +83,6 @@ class TabsScreen : Screen, KoinComponent {
                 }
             ) { tabNavigator ->
                 Scaffold(
-                    scaffoldState = scaffoldState,
-                    snackbarHost = { CustomSnackbarHost(scaffoldState.snackbarHostState) },
                     topBar = {
                         TopAppBar(backgroundColor = white, // Change this to your desired background color
                             contentColor = grey9,
@@ -171,18 +159,6 @@ class TabsScreen : Screen, KoinComponent {
                     }
                 )
             }
-        }
-    }
-
-    @Composable
-    fun CustomSnackbarHost(snackbarHostState: SnackbarHostState) {
-        SnackbarHost(hostState = snackbarHostState) { data ->
-            Snackbar(
-                snackbarData = data,
-                backgroundColor = grey9,
-                contentColor = white,
-                actionColor = white
-            )
         }
     }
 

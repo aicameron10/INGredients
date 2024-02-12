@@ -465,7 +465,7 @@ fun InstructionsView(item: Steps) {
             shape = RoundedCornerShape(8.dp), elevation = 2.dp
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(all = 8.dp),
+                modifier = Modifier.fillMaxWidth().padding(all = 8.dp).background(white),
                 verticalAlignment = Alignment.Top,
                 horizontalArrangement = Arrangement.Start
             ) {
