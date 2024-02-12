@@ -28,7 +28,7 @@ class SharedViewModel(
     private val mainDispatcher: CoroutineDispatcher = Dispatchers.Main
 ) {
 
-    var lastSearchedText = ""
+    var lastSearchedText : String? = null
     var nav: Navigator? = null
 
     private val snackBarChannel = Channel<String>()

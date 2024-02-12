@@ -6,7 +6,7 @@ import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.tab.Tab
 import cafe.adriel.voyager.navigator.tab.TabOptions
-import com.recipe.screens.RecipeScreen
+import com.recipe.screens.FavouriteScreen
 import com.recipe.viewmodels.SharedViewModel
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Heart
@@ -32,7 +32,7 @@ internal object RecipeTab : Tab, KoinComponent {
     @Composable
     override fun Content() {
         val viewModel = get<SharedViewModel>()
-        Navigator(RecipeScreen(),onBackPressed = {
+        Navigator(FavouriteScreen(),onBackPressed = {
             viewModel.showBackIcon.value = false
             true
         })

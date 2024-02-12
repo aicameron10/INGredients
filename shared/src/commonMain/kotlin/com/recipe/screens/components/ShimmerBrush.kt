@@ -46,7 +46,6 @@ fun shimmerBrush(showShimmer: Boolean = true, targetValue: Float = 1000f): Brush
 
 @Composable
 fun ShimmerBox(modifier: Modifier = Modifier) {
-    // You can further refine this to actually shimmer using an animated gradient
     Box(
         modifier = modifier.background(shimmerBrush(targetValue = 1300f, showShimmer = true))
     )

@@ -27,7 +27,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -39,12 +38,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import animateKottieCompositionAsState
 import cafe.adriel.voyager.core.screen.Screen
-import com.recipe.database.DatabaseRepository
 import com.recipe.getAppVersion
-import com.recipe.multiplatformsettings.SessionManager
 import com.recipe.switchToDarkMode
 import com.recipe.switchToLightMode
-import com.recipe.ui.theme.AppTheme
 import com.recipe.ui.theme.MEDIUM_PADDING
 import com.recipe.ui.theme.black
 import com.recipe.ui.theme.grey1
@@ -52,48 +48,34 @@ import com.recipe.ui.theme.grey3
 import com.recipe.ui.theme.grey5
 import com.recipe.ui.theme.grey9
 import com.recipe.ui.theme.orange
-import com.recipe.viewmodels.SharedViewModel
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.ChevronRight
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 import org.koin.core.component.KoinComponent
-import org.koin.core.component.get
 import rememberKottieComposition
-
 
 class SettingsScreen : Screen, KoinComponent {
 
     @ExperimentalMaterialApi
     @Composable
     override fun Content() {
-        val sessionManager = get<SessionManager>()
-        val viewModel = get<SharedViewModel>()
-        val databaseRepository = get<DatabaseRepository>()
-        SettingsScreenContent(sessionManager, viewModel, databaseRepository)
+        SettingsScreenContent()
     }
 }
 
 @Composable
-fun SettingsScreenContent(
-    sessionManager: SessionManager,
-    viewModel: SharedViewModel,
-    databaseRepository: DatabaseRepository
-) {
+fun SettingsScreenContent() {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Options(sessionManager, viewModel, databaseRepository)
+        Options()
     }
 }
 
 @Composable
-fun Options(
-    sessionManager: SessionManager,
-    viewModel: SharedViewModel,
-    databaseRepository: DatabaseRepository
-) {
+fun Options() {
     val switchState = remember { mutableStateOf(false) }
     LazyColumn(
         modifier = Modifier
@@ -154,7 +136,7 @@ fun Options(
                 OptionsData(
                     title = "Delete all Favourites",
                     subTitle = "Make space for all new recipes"
-                ), sessionManager, databaseRepository
+                )
             )
         }
 
@@ -246,11 +228,8 @@ private fun TopDetails() {
 
 @Composable
 private fun OptionsItemStyle(
-    item: OptionsData,
-    sessionManager: SessionManager,
-    databaseRepository: DatabaseRepository
+    item: OptionsData
 ) {
-    var showDialog by remember { mutableStateOf(false) }
     Row(
         modifier = Modifier
             .fillMaxWidth()

@@ -1,6 +1,7 @@
 package com.recipe.screens
 
 import KottieAnimation
+import KottieCompositionSpec
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -44,9 +45,7 @@ import animateKottieCompositionAsState
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
-import com.recipe.database.DatabaseRepository
 import com.recipe.isConnected
-import com.recipe.multiplatformsettings.SessionManager
 import com.recipe.ui.theme.MEDIUM_PADDING
 import com.recipe.ui.theme.blue5
 import com.recipe.ui.theme.grey2
@@ -63,20 +62,19 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
 import rememberKottieComposition
 
-class RecipeScreen : Screen, KoinComponent {
+class FavouriteScreen : Screen, KoinComponent {
 
     @ExperimentalMaterialApi
     @Composable
     override fun Content() {
         val viewModel = get<FavouriteViewModel>()
         val sharedViewModel = get<SharedViewModel>()
-        val databaseRepository = get<DatabaseRepository>()
 
         viewModel.loadFavourite()
 
         val favList = viewModel.favouriteList.value
 
-        FavouriteList(favList = favList, sharedViewModel = sharedViewModel, databaseRepository= databaseRepository, viewModel = viewModel)
+        FavouriteList(favList = favList, sharedViewModel = sharedViewModel, viewModel = viewModel)
     }
 
     @Composable
@@ -84,7 +82,6 @@ class RecipeScreen : Screen, KoinComponent {
         modifier: Modifier = Modifier,
         favList: List<RecipeInfo>,
         sharedViewModel: SharedViewModel,
-        databaseRepository: DatabaseRepository,
         viewModel: FavouriteViewModel
     ) {
         val stateLister = rememberLazyListState()
@@ -168,7 +165,6 @@ class RecipeScreen : Screen, KoinComponent {
                     FavouriteItem(
                         item,
                         sharedViewModel,
-                        databaseRepository,
                         viewModel
                     )
                 }
@@ -180,7 +176,6 @@ class RecipeScreen : Screen, KoinComponent {
     fun FavouriteItem(
         item: RecipeInfo,
         sharedViewModel: SharedViewModel,
-        databaseRepository: DatabaseRepository,
         viewModel: FavouriteViewModel
     ) {
         val navigator = LocalNavigator.currentOrThrow
@@ -247,11 +242,7 @@ class RecipeScreen : Screen, KoinComponent {
                             modifier = Modifier
                                 .wrapContentWidth(align = Alignment.End)
                                 .width(35.dp).height(35.dp).clickable {
-                                    databaseRepository.database.recipesQueries.updateFavourite(
-                                        favourite = 0,
-                                        id = item.id,
-                                    )
-                                    viewModel.loadFavourite()
+                                    viewModel.updateFavourite(item.id)
                                 },
                             imageVector = Icons.Filled.Favorite,
                             contentDescription = "favourite",

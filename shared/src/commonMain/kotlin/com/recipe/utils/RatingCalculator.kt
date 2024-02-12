@@ -1,6 +1,5 @@
 package com.recipe.utils
 
-
 class RatingCalculator {
     companion object {
         fun calculateStars(rating: Double, maxStars: Int = 5): List<StarType> {

@@ -44,8 +44,6 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
-import co.touchlab.kermit.Logger
-import com.recipe.database.DatabaseRepository
 import com.recipe.multiplatformsettings.SessionManager
 import com.recipe.network.model.request.RecipeRequest
 import com.recipe.network.model.response.ExtendedIngredients
@@ -93,21 +91,14 @@ class RecipeDetailScreen(
 
         val viewModel = get<RecipeDetailViewModel>()
         val sessionManager = get<SessionManager>()
-        val databaseRepository = get<DatabaseRepository>()
         val scope = rememberCoroutineScope()
         val isLoading = viewModel.isLoading.collectAsState().value
         val isNetworkError = viewModel.isNetworkError.collectAsState().value
         val isFavourite = viewModel.isFavourite.collectAsState().value
 
-        viewModel._isFavourite.value =
-            databaseRepository.database.recipesQueries.selectFavouriteInfo(
-                recipeId?.toLong() ?: 0L
-            ).executeAsOneOrNull()?.favourite?.toInt() ?: 0
+        viewModel.isFavoured.value = viewModel.isFavourite(recipeId?.toLong() ?: 0L)
 
-        val existingId =
-            databaseRepository.database.recipesQueries.selectAllRecipes(
-                recipeId?.toLong() ?: 0L
-            ).executeAsOneOrNull()
+        val existingId = viewModel.isAlreadySaved(recipeId?.toLong() ?: 0L)
 
         LaunchedEffect(key1 = sessionManager.getAuthorization()) {
             scope.launch {
@@ -128,20 +119,23 @@ class RecipeDetailScreen(
         LaunchedEffect(key1 = sessionManager.getAuthorization()) {
             scope.launch {
                 viewModel.recipeInfoObserver.filterNotNull().collect { response ->
-                    if (response.data != null) {
-                        viewModel.recipeInfo = response.data
+                    when {
+                        response.data != null -> {
+                            viewModel.recipeInfo = response.data
 
-                        if (existingId == null) {
-                            viewModel.saveRecipe(
-                                data = response.data,
-                                recipeId = recipeId ?: 0,
-                                recipeTitle = recipeTitle.toString(),
-                                recipeImage = recipeImage.toString()
-                            )
+                            if (existingId == null) {
+                                viewModel.saveRecipe(
+                                    data = response.data,
+                                    recipeId = recipeId ?: 0,
+                                    recipeTitle = recipeTitle.toString(),
+                                    recipeImage = recipeImage.toString()
+                                )
+                            }
                         }
-                    } else if (response.apiError != null) {
-                        viewModel.networkErrorMessage = response.apiError.message.toString()
-                        viewModel._isError.value = true
+                        response.apiError != null -> {
+                            viewModel.networkErrorMessage = response.apiError.message.toString()
+                            viewModel.isError.value = true
+                        }
                     }
                 }
             }
@@ -162,137 +156,127 @@ class RecipeDetailScreen(
                         modifier = Modifier
                             .background(grey2)
                     ) {
-                        if (isNetworkError) {
-                            ErrorView("error.json", viewModel.networkErrorMessage)
-                        } else if (isLoading) {
-                            BookDetailSkeleton()
-                        } else {
+                        when {
+                            isNetworkError -> {
+                                ErrorView("error.json", viewModel.networkErrorMessage.toString())
+                            }
+                            isLoading -> {
+                                BookDetailSkeleton()
+                            }
+                            else -> {
 
-                            Spacer(modifier = Modifier.padding(SMALL_PADDING))
+                                Spacer(modifier = Modifier.padding(SMALL_PADDING))
 
-                            Row(
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.fillMaxWidth()
-                                    .padding(horizontal = HORIZONTAL_PADDING)
-                            ) {
-                                Card(
-                                    modifier = Modifier
-                                        .width(100.dp)
-                                        .height(100.dp),
-                                    shape = RoundedCornerShape(8.dp), elevation = 2.dp
+                                Row(
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.fillMaxWidth()
+                                        .padding(horizontal = HORIZONTAL_PADDING)
                                 ) {
-                                    Image(
-                                        painter = rememberImagePainter(viewModel.recipeInfo?.image.toString()),
-                                        contentScale = ContentScale.Crop,
-                                        contentDescription = "",
+                                    Card(
                                         modifier = Modifier
-                                            .height(100.dp)
                                             .width(100.dp)
-                                    )
-                                }
-                                Column(verticalArrangement = Arrangement.SpaceEvenly) {
-                                    val numberRatings =
-                                        (viewModel.recipeInfo?.spoonacularScore?.toInt() ?: 0) / 2
-                                    val stars = RatingCalculator.calculateStars(
-                                        numberRatings.toDouble(), 5
-                                    )
-                                    Row(
-                                        horizontalArrangement = Arrangement.Center,
-                                        verticalAlignment = Alignment.CenterVertically,
+                                            .height(100.dp),
+                                        shape = RoundedCornerShape(8.dp), elevation = 2.dp
                                     ) {
-                                        Icon(
+                                        Image(
+                                            painter = rememberImagePainter(viewModel.recipeInfo?.image.toString()),
+                                            contentScale = ContentScale.Crop,
+                                            contentDescription = "",
                                             modifier = Modifier
-                                                .width(24.dp).height(24.dp),
-                                            imageVector = FeatherIcons.ThumbsUp,
-                                            contentDescription = "approved",
-                                            tint = grey9
+                                                .height(100.dp)
+                                                .width(100.dp)
                                         )
-                                        Text(
-                                            modifier = Modifier.padding(
-                                                start = SMALL_PADDING,
-                                                end = SMALL_PADDING
-                                            ),
-                                            text = "rating",
-                                            textAlign = TextAlign.Center,
-                                            color = grey9,
-                                            style = MaterialTheme.typography.subtitle2,
-                                            fontSize = 16.sp,
-                                            fontWeight = FontWeight.Normal
+                                    }
+                                    Column(verticalArrangement = Arrangement.SpaceEvenly) {
+                                        val numberRatings =
+                                            (viewModel.recipeInfo?.spoonacularScore?.toInt() ?: 0) / 2
+                                        val stars = RatingCalculator.calculateStars(
+                                            numberRatings.toDouble(), 5
                                         )
-                                        for (star in stars) {
+                                        Row(
+                                            horizontalArrangement = Arrangement.Center,
+                                            verticalAlignment = Alignment.CenterVertically,
+                                        ) {
                                             Icon(
                                                 modifier = Modifier
-                                                    .size(16.dp)
-                                                    .padding(end = 2.dp),
-                                                painter = when (star) {
-                                                    StarType.FULL -> painterResource("star.png")
-                                                    StarType.HALF -> painterResource("half_star.png")
-                                                    StarType.EMPTY -> painterResource("empty_star.png")
-                                                },
-                                                contentDescription = "review stars",
-                                                tint = when (star) {
-                                                    StarType.FULL -> yellow
-                                                    StarType.HALF -> Color.Unspecified
-                                                    StarType.EMPTY -> grey3
-                                                }
+                                                    .width(24.dp).height(24.dp),
+                                                imageVector = FeatherIcons.ThumbsUp,
+                                                contentDescription = "approved",
+                                                tint = grey9
+                                            )
+                                            Text(
+                                                modifier = Modifier.padding(
+                                                    start = SMALL_PADDING,
+                                                    end = SMALL_PADDING
+                                                ),
+                                                text = "rating",
+                                                textAlign = TextAlign.Center,
+                                                color = grey9,
+                                                style = MaterialTheme.typography.subtitle2,
+                                                fontSize = 16.sp,
+                                                fontWeight = FontWeight.Normal
+                                            )
+                                            for (star in stars) {
+                                                Icon(
+                                                    modifier = Modifier
+                                                        .size(16.dp)
+                                                        .padding(end = 2.dp),
+                                                    painter = when (star) {
+                                                        StarType.FULL -> painterResource("star.png")
+                                                        StarType.HALF -> painterResource("half_star.png")
+                                                        StarType.EMPTY -> painterResource("empty_star.png")
+                                                    },
+                                                    contentDescription = "review stars",
+                                                    tint = when (star) {
+                                                        StarType.FULL -> yellow
+                                                        StarType.HALF -> Color.Unspecified
+                                                        StarType.EMPTY -> grey3
+                                                    }
+                                                )
+                                            }
+                                        }
+
+                                        Spacer(modifier = Modifier.padding(X_SMALL_PADDING))
+
+                                        Row {
+                                            Icon(
+                                                modifier = Modifier
+                                                    .width(24.dp).height(24.dp),
+                                                imageVector = FeatherIcons.Clock,
+                                                contentDescription = "clock",
+                                                tint = grey9
+                                            )
+                                            Text(
+                                                modifier = Modifier.padding(start = SMALL_PADDING),
+                                                text = viewModel.recipeInfo?.readyInMinutes.toString() + " minutes",
+                                                textAlign = TextAlign.Left,
+                                                lineHeight = 24.sp,
+                                                style = MaterialTheme.typography.subtitle2,
+                                                fontSize = 16.sp,
+                                                color = grey9,
+                                                fontWeight = FontWeight.Normal
                                             )
                                         }
                                     }
 
-                                    Spacer(modifier = Modifier.padding(X_SMALL_PADDING))
-
-                                    Row {
-                                        Icon(
-                                            modifier = Modifier
-                                                .width(24.dp).height(24.dp),
-                                            imageVector = FeatherIcons.Clock,
-                                            contentDescription = "clock",
-                                            tint = grey9
-                                        )
-                                        Text(
-                                            modifier = Modifier.padding(start = SMALL_PADDING),
-                                            text = viewModel.recipeInfo?.readyInMinutes.toString() + " minutes",
-                                            textAlign = TextAlign.Left,
-                                            lineHeight = 24.sp,
-                                            style = MaterialTheme.typography.subtitle2,
-                                            fontSize = 16.sp,
-                                            color = grey9,
-                                            fontWeight = FontWeight.Normal
-                                        )
-                                    }
+                                    Icon(
+                                        modifier = Modifier
+                                            .width(35.dp).height(35.dp).clickable {
+                                                viewModel.toggleFavourite(recipeId?.toLong())
+                                            },
+                                        imageVector = if (isFavourite == 0) FeatherIcons.Heart else Icons.Filled.Favorite,
+                                        contentDescription = "favourite",
+                                        tint = grey9
+                                    )
                                 }
 
-                                Icon(
-                                    modifier = Modifier
-                                        .width(35.dp).height(35.dp).clickable {
-                                            viewModel.toggleFavourite(recipeId?.toLong())
-                                        },
-                                    imageVector = if (isFavourite == 0) FeatherIcons.Heart else Icons.Filled.Favorite,
-                                    contentDescription = "favourite",
-                                    tint = grey9
-                                )
-                            }
+                                Spacer(modifier = Modifier.padding(SMALL_PADDING))
 
-                            Spacer(modifier = Modifier.padding(SMALL_PADDING))
-
-                            Text(
-                                text = renderHtml(viewModel.recipeInfo?.summary.toString()),
-                                modifier = Modifier
-                                    .fillMaxWidth(1f).padding(horizontal = HORIZONTAL_PADDING),
-                                textAlign = TextAlign.Left,
-                                style = MaterialTheme.typography.subtitle2,
-                                color = grey9,
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Normal
-                            )
-
-                            Spacer(modifier = Modifier.padding(SMALL_PADDING))
-
-                            Row(modifier = Modifier.padding(horizontal = HORIZONTAL_PADDING)) {
                                 Text(
-                                    text = viewModel.recipeInfo?.sourceName.toString(),
-                                    modifier = Modifier.padding(end = 8.dp),
+                                    text = renderHtml(viewModel.recipeInfo?.summary.toString()),
+                                    modifier = Modifier
+                                        .fillMaxWidth(1f).padding(horizontal = HORIZONTAL_PADDING),
                                     textAlign = TextAlign.Left,
                                     style = MaterialTheme.typography.subtitle2,
                                     color = grey9,
@@ -300,24 +284,38 @@ class RecipeDetailScreen(
                                     fontWeight = FontWeight.Normal
                                 )
 
-                                val annotatedText = buildAnnotatedString {
-                                    withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
-                                        append("View original recipe")
-                                    }
-                                }
-                                Text(
-                                    modifier = Modifier.padding(horizontal = 8.dp)
-                                        .clickable { openBrowser(viewModel.recipeInfo?.sourceUrl.toString()) },
-                                    text = annotatedText,
-                                    textAlign = TextAlign.Center,
-                                    color = grey9,
-                                    style = MaterialTheme.typography.subtitle2,
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Normal
-                                )
-                            }
+                                Spacer(modifier = Modifier.padding(SMALL_PADDING))
 
-                            Spacer(modifier = Modifier.padding(MEDIUM_PADDING))
+                                Row(modifier = Modifier.padding(horizontal = HORIZONTAL_PADDING)) {
+                                    Text(
+                                        text = viewModel.recipeInfo?.sourceName.toString(),
+                                        modifier = Modifier.padding(end = 8.dp),
+                                        textAlign = TextAlign.Left,
+                                        style = MaterialTheme.typography.subtitle2,
+                                        color = grey9,
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Normal
+                                    )
+
+                                    val annotatedText = buildAnnotatedString {
+                                        withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
+                                            append("View original recipe")
+                                        }
+                                    }
+                                    Text(
+                                        modifier = Modifier.padding(horizontal = 8.dp)
+                                            .clickable { openBrowser(viewModel.recipeInfo?.sourceUrl.toString()) },
+                                        text = annotatedText,
+                                        textAlign = TextAlign.Center,
+                                        color = grey9,
+                                        style = MaterialTheme.typography.subtitle2,
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Normal
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.padding(MEDIUM_PADDING))
+                            }
                         }
                     }
                 }

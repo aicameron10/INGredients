@@ -90,7 +90,6 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
 import rememberKottieComposition
 
-
 class HomeScreen : Screen, KoinComponent {
 
     @ExperimentalMaterialApi
@@ -112,16 +111,20 @@ fun HomeScreenContent(
 
     LaunchedEffect(key1 = sessionManager.getAuthorization()) {
         viewModel.recipeObserver.filterNotNull().collect { response ->
-            if (response.data != null) {
-                if (response.data?.results?.isNotEmpty() == true) {
-                    viewModel.recipeList = response.data?.results
-                } else {
-                    viewModel.showSnackBar("Empty results, please try again!")
+            when {
+                response.data != null -> {
+                    if (response.data?.results?.isNotEmpty() == true) {
+                        viewModel.recipeList = response.data?.results
+                    } else {
+                        viewModel.showSnackBar("Empty results, please try again!")
+                    }
                 }
-            } else if (response.apiError != null) {
-                viewModel.showSnackBar(response.apiError.message.toString())
-            } else {
-                viewModel.showSnackBar("Something went wrong, please try again!")
+                response.apiError != null -> {
+                    viewModel.showSnackBar(response.apiError.message.toString())
+                }
+                else -> {
+                    viewModel.showSnackBar("Something went wrong, please try again!")
+                }
             }
         }
     }
@@ -339,93 +342,96 @@ fun RecipeList(
     Column(
         modifier = modifier.fillMaxWidth().background(white).fillMaxHeight().padding(top = 54.dp)
     ) {
-        if (!isConnected()) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    val composition = rememberKottieComposition(
-                        spec = KottieCompositionSpec.File("internet.json")
-                    )
-
-                    val animationState by animateKottieCompositionAsState(
-                        composition = composition,
-                        speed = 1f,
-                        iterations = 5
-                    )
-
-                    KottieAnimation(
-                        composition = composition,
-                        progress = { animationState.progress },
-                        modifier = Modifier.width(300.dp).height(300.dp),
-                    )
-                }
-            }
-        } else {
-            if (recipeList.isEmpty()) {
-                val recentList = sharedViewModel.recentList.value
+        when {
+            !isConnected() -> {
                 Box(
                     modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.TopCenter
+                    contentAlignment = Alignment.Center
                 ) {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Spacer(modifier = Modifier.padding(MEDIUM_PADDING))
-                        if (sharedViewModel.recentList.value.isNotEmpty()) {
-                            Text(
-                                text = "Recently viewed recipes.", modifier = Modifier
-                                    .fillMaxWidth(1f)
-                                    .padding(start = 48.dp, end = 48.dp),
-                                textAlign = TextAlign.Center,
-                                color = grey9,
-                                fontSize = 19.sp,
-                                style = MaterialTheme.typography.subtitle2,
-                                fontWeight = FontWeight.Bold
-                            )
-
-                            Spacer(modifier = Modifier.padding(SMALL_PADDING))
-                            LazyRow(
-                                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                                contentPadding = PaddingValues(start = 16.dp, end = 16.dp)
-                            ) {
-                                itemsIndexed(
-                                    items = recentList,
-                                    key = { _, item -> item.id }) { index, item ->
-                                    RecentlyViewedItem(item = item, sharedViewModel)
-                                }
-                            }
-                        }
-
                         val composition = rememberKottieComposition(
-                            spec = KottieCompositionSpec.File("ingredients.json")
+                            spec = KottieCompositionSpec.File("internet.json")
                         )
 
                         val animationState by animateKottieCompositionAsState(
                             composition = composition,
                             speed = 1f,
-                            iterations = 1
+                            iterations = 5
                         )
 
                         KottieAnimation(
                             composition = composition,
                             progress = { animationState.progress },
-                            modifier = Modifier.width(280.dp).height(250.dp),
+                            modifier = Modifier.width(300.dp).height(300.dp),
                         )
-                        Text(
-                            text = "Start your search for amazing recipes!", modifier = Modifier
-                                .fillMaxWidth(1f)
-                                .padding(start = 48.dp, end = 48.dp),
-                            textAlign = TextAlign.Center,
-                            color = grey9,
-                            style = MaterialTheme.typography.subtitle2,
-                            fontWeight = FontWeight.Bold
-                        )
+                    }
+                }
+            }
+            else -> {
+                if (recipeList.isEmpty()) {
+                    val recentList = sharedViewModel.recentList.value
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.TopCenter
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Spacer(modifier = Modifier.padding(MEDIUM_PADDING))
+                            if (sharedViewModel.recentList.value.isNotEmpty()) {
+                                Text(
+                                    text = "Recently viewed recipes.", modifier = Modifier
+                                        .fillMaxWidth(1f)
+                                        .padding(start = 48.dp, end = 48.dp),
+                                    textAlign = TextAlign.Center,
+                                    color = grey9,
+                                    fontSize = 19.sp,
+                                    style = MaterialTheme.typography.subtitle2,
+                                    fontWeight = FontWeight.Bold
+                                )
+
+                                Spacer(modifier = Modifier.padding(SMALL_PADDING))
+                                LazyRow(
+                                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp)
+                                ) {
+                                    itemsIndexed(
+                                        items = recentList,
+                                        key = { _, item -> item.id }) { _, item ->
+                                        RecentlyViewedItem(item = item, sharedViewModel)
+                                    }
+                                }
+                            }
+
+                            val composition = rememberKottieComposition(
+                                spec = KottieCompositionSpec.File("ingredients.json")
+                            )
+
+                            val animationState by animateKottieCompositionAsState(
+                                composition = composition,
+                                speed = 1f,
+                                iterations = 1
+                            )
+
+                            KottieAnimation(
+                                composition = composition,
+                                progress = { animationState.progress },
+                                modifier = Modifier.width(280.dp).height(250.dp),
+                            )
+                            Text(
+                                text = "Start your search for amazing recipes!", modifier = Modifier
+                                    .fillMaxWidth(1f)
+                                    .padding(start = 48.dp, end = 48.dp),
+                                textAlign = TextAlign.Center,
+                                color = grey9,
+                                style = MaterialTheme.typography.subtitle2,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
                 }
             }

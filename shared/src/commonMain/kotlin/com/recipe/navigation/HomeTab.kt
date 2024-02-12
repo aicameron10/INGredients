@@ -6,10 +6,9 @@ import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.tab.Tab
 import cafe.adriel.voyager.navigator.tab.TabOptions
-import com.recipe.viewmodels.SharedViewModel
 import com.recipe.screens.HomeScreen
+import com.recipe.viewmodels.SharedViewModel
 import compose.icons.FeatherIcons
-import compose.icons.feathericons.Book
 import compose.icons.feathericons.Home
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get

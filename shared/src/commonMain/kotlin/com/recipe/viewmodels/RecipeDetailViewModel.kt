@@ -3,7 +3,6 @@ package com.recipe.viewmodels
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import co.touchlab.kermit.Logger
 import com.recipe.database.DatabaseRepository
 import com.recipe.network.Response
 import com.recipe.network.api.RecipeRepository
@@ -14,6 +13,7 @@ import com.recipe.network.model.response.Ingredients
 import com.recipe.network.model.response.InstructionsList
 import com.recipe.network.model.response.RecipeInfoResponse
 import com.recipe.network.model.response.Steps
+import comrecipe.RecipeInfo
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -27,30 +27,42 @@ class RecipeDetailViewModel(
     private val mainDispatcher: CoroutineDispatcher = Dispatchers.Main
 ) {
 
-    var networkErrorMessage = ""
+    var networkErrorMessage: String? = null
     var recipeInfo by mutableStateOf<RecipeInfoResponse?>(null)
 
     private val _recipeInfo: MutableStateFlow<Response<RecipeInfoResponse>?> =
         MutableStateFlow(null)
     val recipeInfoObserver: StateFlow<Response<RecipeInfoResponse>?> = _recipeInfo
 
-    val _isFavourite = MutableStateFlow(0) // 0 = not favourite, 1 = favourite
-    val isFavourite: StateFlow<Int> = _isFavourite
+    val isFavoured = MutableStateFlow(0) // 0 = not favourite, 1 = favourite
+    val isFavourite: StateFlow<Int> = isFavoured
 
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> get() = _isLoading
 
-    val _isError = MutableStateFlow(false)
-    val isNetworkError: StateFlow<Boolean> get() = _isError
+    val isError = MutableStateFlow(false)
+    val isNetworkError: StateFlow<Boolean> get() = isError
 
     fun toggleFavourite(recipeId: Long?) {
-        _isFavourite.value = if (_isFavourite.value == 0) 1 else 0
+        isFavoured.value = if (isFavoured.value == 0) 1 else 0
         recipeId?.let {
             databaseRepository.database.recipesQueries.updateFavourite(
-                favourite = _isFavourite.value.toLong(),
+                favourite = isFavoured.value.toLong(),
                 id = it
             )
         }
+    }
+
+    fun isFavourite(recipeId: Long): Int {
+        return databaseRepository.database.recipesQueries.selectFavouriteInfo(
+            recipeId
+        ).executeAsOneOrNull()?.favourite?.toInt() ?: 0
+    }
+
+    fun isAlreadySaved(recipeId: Long): RecipeInfo? {
+        return databaseRepository.database.recipesQueries.selectAllRecipes(
+            recipeId
+        ).executeAsOneOrNull()
     }
 
     fun saveRecipe(
@@ -105,7 +117,9 @@ class RecipeDetailViewModel(
             recipeInfoResponse.apply {
                 val recipeIdLong = recipeId.toLong()
 
-                val databaseList = databaseRepository.database.recipesQueries.selectAllRecipes(recipeIdLong).executeAsList()
+                val databaseList =
+                    databaseRepository.database.recipesQueries.selectAllRecipes(recipeIdLong)
+                        .executeAsList()
                 if (databaseList.isNotEmpty()) {
                     val recipe = databaseList.first()
                     id = recipe.id.toInt()
@@ -131,20 +145,25 @@ class RecipeDetailViewModel(
     }
 
     private fun mapIngredients(recipeId: Long): ArrayList<ExtendedIngredients> =
-        databaseRepository.database.recipesQueries.selectAllIngredients(recipeId).executeAsList().map {
-            ExtendedIngredients(
-                originalName = it.originalName,
-                amount = it.amount?.toDouble(),
-                unit = it.unit
-            )
-        }.toCollection(ArrayList())
+        databaseRepository.database.recipesQueries.selectAllIngredients(recipeId).executeAsList()
+            .map {
+                ExtendedIngredients(
+                    originalName = it.originalName,
+                    amount = it.amount?.toDouble(),
+                    unit = it.unit
+                )
+            }.toCollection(ArrayList())
 
     private fun mapInstructions(recipeId: Long): ArrayList<InstructionsList> {
-        val instructionList = databaseRepository.database.recipesQueries.selectAllInstructions(recipeId).executeAsList()
+        val instructionList =
+            databaseRepository.database.recipesQueries.selectAllInstructions(recipeId)
+                .executeAsList()
         val instructions = InstructionsList()
         instructions.steps = instructionList.flatMap { instruction ->
-            val equipment = instruction.equipment?.split(", ")?.map { Equipment(name = it) } ?: emptyList()
-            val ingredients = instruction.ingredients?.split(", ")?.map { Ingredients(name = it) } ?: emptyList()
+            val equipment =
+                instruction.equipment?.split(", ")?.map { Equipment(name = it) } ?: emptyList()
+            val ingredients =
+                instruction.ingredients?.split(", ")?.map { Ingredients(name = it) } ?: emptyList()
             listOf(
                 Steps(
                     step = instruction.step,

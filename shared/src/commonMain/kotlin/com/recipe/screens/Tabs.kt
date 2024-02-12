@@ -44,7 +44,6 @@ import cafe.adriel.voyager.navigator.tab.LocalTabNavigator
 import cafe.adriel.voyager.navigator.tab.Tab
 import cafe.adriel.voyager.navigator.tab.TabDisposable
 import cafe.adriel.voyager.navigator.tab.TabNavigator
-import co.touchlab.kermit.Logger
 import com.recipe.navigation.HomeTab
 import com.recipe.navigation.RecipeTab
 import com.recipe.navigation.SettingsTab
@@ -75,7 +74,6 @@ class TabsScreen : Screen, KoinComponent {
 
         LaunchedEffect(snackBarHostState) {
             viewModel.snackBarFlow.collect { message ->
-                Logger.i { "dope " + message }
                 snackBarHostState.showSnackbar(message,duration = SnackbarDuration.Long)
             }
         }
