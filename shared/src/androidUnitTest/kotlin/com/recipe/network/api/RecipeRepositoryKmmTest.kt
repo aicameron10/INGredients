@@ -17,7 +17,6 @@ import org.koin.core.component.inject
 import org.koin.dsl.module
 import org.koin.test.KoinTest
 import org.koin.test.junit5.KoinTestExtension
-
 @OptIn(ExperimentalCoroutinesApi::class)
 class RecipeRepositoryKmmTest : KoinTest {
 

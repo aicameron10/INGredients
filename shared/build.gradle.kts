@@ -74,8 +74,6 @@ kotlin {
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
-            implementation(kotlin("test-common"))
-            implementation(kotlin("test-annotations-common"))
         }
 
         sourceSets.nativeMain.dependencies {
@@ -114,8 +112,8 @@ android {
 }
 dependencies {
     testImplementation(libs.ktor.client.mock)
-    testImplementation(libs.koin.test.junit5)
-    testImplementation(libs.koin.test.v316)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.mockk)
+    testImplementation(libs.koin.test)
+    implementation(libs.koin.test.junit5)
 }
