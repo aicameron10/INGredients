@@ -7,12 +7,10 @@ import platform.darwin.dispatch_get_main_queue
 import platform.darwin.dispatch_queue_t
 import kotlin.coroutines.CoroutineContext
 
-// 1
 internal actual val
 NetworkDispatcher: CoroutineDispatcher =
     NsQueueDispatcher(dispatch_get_main_queue())
 
-// 2
 internal class NsQueueDispatcher(
     private val dispatchQueue: dispatch_queue_t
 ) : CoroutineDispatcher() {

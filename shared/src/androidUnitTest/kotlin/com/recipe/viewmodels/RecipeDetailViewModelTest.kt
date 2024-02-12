@@ -3,14 +3,17 @@ package com.recipe.viewmodels
 import com.recipe.database.DatabaseRepository
 import com.recipe.network.api.RecipeRepository
 import com.recipe.network.model.response.RecipeInfoResponse
+import comrecipe.RecipeInfo
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.just
 import io.mockk.mockk
-import io.mockk.verify
+import io.mockk.runs
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import org.junit.After
-import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 
@@ -18,40 +21,103 @@ import org.junit.Test
 class RecipeDetailViewModelTest {
 
     private lateinit var viewModel: RecipeDetailViewModel
-    private val recipeRepository = mockk<RecipeRepository>(relaxed = true)
-    private val databaseRepository = mockk<DatabaseRepository>(relaxed = true)
+    private val recipeRepository: RecipeRepository = mockk(relaxed = true)
+    private val databaseRepository: DatabaseRepository = mockk(relaxed = true)
 
     @Before
-    fun setup() {
+    fun setUp() {
         Dispatchers.setMain(Dispatchers.Unconfined)
         viewModel = RecipeDetailViewModel(recipeRepository, databaseRepository, Dispatchers.Main)
     }
 
     @After
     fun tearDown() {
-        Dispatchers.resetMain() // Reset the main dispatcher to the original Main dispatcher
+        Dispatchers.resetMain()
     }
 
     @Test
-    fun `toggle favourite updates isFavourite state and database`() {
-        viewModel.toggleFavourite(1L)
+    fun `toggleFavourite updates favourite status correctly`() {
+        val recipeId: Long = 1
+        // Setup initial favourite status as not favourite
+        viewModel.isFavoured.value = 0
 
-        assertEquals(1, viewModel.isFavourite.value)
+        // Simulate database operation
+        coEvery { databaseRepository.database.recipesQueries.updateFavourite(any(), any()) } just runs
 
-        // Verify that the database update function is called with the correct arguments
-        verify { databaseRepository.database.recipesQueries.updateFavourite(1, 1L) }
+        viewModel.toggleFavourite(recipeId)
+
+        // Assert the favourite status is toggled
+        assert(viewModel.isFavoured.value == 1)
+
+        // Verify database operation was called
+        coVerify { databaseRepository.database.recipesQueries.updateFavourite(1, recipeId) }
     }
 
     @Test
-    fun `saveRecipe saves recipe information to database`() {
-        // Assuming saveRecipe does some database operations
-        val recipeInfo = mockk<RecipeInfoResponse>(relaxed = true)
+    fun `isFavourite returns correct favourite status`() {
+        val recipeId: Long = 1
+        val expectedFavouriteStatus = 1
 
-        viewModel.saveRecipe(recipeInfo, 1, "Test Recipe", "image_url")
+        // Mock database response
+        coEvery { databaseRepository.database.recipesQueries.selectFavouriteInfo(recipeId).executeAsOneOrNull()?.favourite } returns expectedFavouriteStatus.toLong()
 
-        // Verify that database operations were called
-        verify(exactly = 1) { databaseRepository.database.recipesQueries.insertRecipeItems(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) }
+        val favouriteStatus = viewModel.isFavourite(recipeId)
+
+        // Assert the returned status matches expected
+        assert(favouriteStatus == expectedFavouriteStatus)
+    }
+
+    @Test
+    fun `saveRecipe saves recipe information correctly`() {
+        val recipeInfoResponse = RecipeInfoResponse(id = 123, title = "Test Recipe", image = "image_url")
+        val recipeId = 123
+        val recipeTitle = "Test Recipe"
+        val recipeImage = "image_url"
+
+        // Setup mock to just run without any operation for insert queries
+        coEvery { databaseRepository.database.recipesQueries.insertRecipeItems(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) } just runs
+
+        viewModel.saveRecipe(recipeInfoResponse, recipeId, recipeTitle, recipeImage)
+
+        // Verify insert operations were called.
+        coVerify { databaseRepository.database.recipesQueries.insertRecipeItems(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) }
+    }
+
+    @Test
+    fun `getDatabaseList retrieves and sets recipe information correctly`() {
+        val recipeId = 1
+        // Mock database response with expected data
+        coEvery { databaseRepository.database.recipesQueries.selectAllRecipes(any()).executeAsList() } returns listOf(  RecipeInfo(
+            1,
+            "Pasta",
+            "image",
+            2,
+            30,
+            "source",
+            "summary",
+            "www.website.com",
+            80,
+            1
+        ),
+            RecipeInfo(
+                2,
+                "Soup",
+                "image",
+                2,
+                45,
+                "source",
+                "summary",
+                "www.website.com",
+                60,
+                1
+            ))
+
+        val result = viewModel.getDatabaseList(recipeId)
+
+        // Assertions to verify the retrieved data matches expectations
+        assert(result.id == recipeId)
+
+        // Verify database access
+        coVerify { databaseRepository.database.recipesQueries.selectAllRecipes(recipeId.toLong()) }
     }
 }
-
-

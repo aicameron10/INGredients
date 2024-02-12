@@ -15,7 +15,7 @@ interface Platform {
 fun App() {
     AppTheme {
         Navigator(
-            SplashScreen(), onBackPressed = { currentScreen ->
+            SplashScreen(), onBackPressed = {
                 true
             }, disposeBehavior = NavigatorDisposeBehavior(disposeNestedNavigators = false)
         )

@@ -2,86 +2,94 @@ package com.recipe.viewmodels
 
 import com.recipe.database.DatabaseRepository
 import comrecipe.RecipeInfo
-import io.mockk.coEvery
+import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.runTest
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.ExtendWith
-import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.DisplayName
-import io.mockk.junit5.MockKExtension
+import kotlinx.coroutines.test.runBlockingTest
+import org.junit.Before
+import org.junit.Test
+import kotlin.test.assertEquals
 
-@ExperimentalCoroutinesApi
-@ExtendWith(MockKExtension::class)
 class FavouriteViewModelTest {
 
     private lateinit var databaseRepository: DatabaseRepository
-    private lateinit var viewModel: FavouriteViewModel
+    private lateinit var favouriteViewModel: FavouriteViewModel
 
-    @BeforeEach
+    @Before
     fun setUp() {
-        // Mock the DatabaseRepository
+        // Initialize MockK
         databaseRepository = mockk(relaxed = true)
 
-        // Prepare a fake list of RecipeInfo objects as a sample response
-        val fakeFavouriteRecipes = listOf(
-            RecipeInfo(1, "Pasta", "image", 2, 30, "source", "summary", "www.website.com", 80, 1),
-            RecipeInfo(2, "Pasta", "image", 4, 45, "source", "summary", "www.website.com", 80, 1),
+        // Mock the database calls
+        every { databaseRepository.database.recipesQueries.selectAllRecipeListFav().executeAsList() } returns listOf(
+            RecipeInfo(
+                1,
+                "Pasta",
+                "image",
+                2,
+                30,
+                "source",
+                "summary",
+                "www.website.com",
+                80,
+                1
+            ),
+            RecipeInfo(
+                2,
+                "Soup",
+                "image",
+                2,
+                45,
+                "source",
+                "summary",
+                "www.website.com",
+                60,
+                1
+            )
         )
 
-        // Mocking the behavior of databaseRepository to return the fake list when queried
-        coEvery {
-            databaseRepository.database.recipesQueries.selectAllRecipeListFav().executeAsList()
-                .reversed()
-        } returns fakeFavouriteRecipes
-
-        // Initialize FavouriteViewModel with the mocked databaseRepository
-        viewModel = FavouriteViewModel(databaseRepository)
+        // Initialize the ViewModel with the mocked repository
+        favouriteViewModel = FavouriteViewModel(databaseRepository)
     }
 
     @Test
-    @DisplayName("loadFavourite successfully updates favouriteList")
-    fun testLoadFavouriteUpdatesListCorrectly() = runTest {
-        // Trigger the action to load favourite recipes
-        viewModel.loadFavourite()
+    fun `loadFavourite loads favorite recipes into state`() {
+        // Assert that the initial state is loaded with the favorite recipes
+        assertEquals(2, favouriteViewModel.favouriteList.value.size)
+        assertEquals("Soup", favouriteViewModel.favouriteList.value[0].title)
+        assertEquals("Pasta", favouriteViewModel.favouriteList.value[1].title)
+    }
 
-        assertEquals(
-            2,
-            viewModel.favouriteList.value.size,
-            "Favourite list should contain the expected number of items."
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun `updateFavourite updates the favorite status of a recipe`() = runBlockingTest {
+        // Prepare the mock to simulate changing the favorite status
+        every { databaseRepository.database.recipesQueries.updateFavourite(favourite = 0, id = 1) } answers { }
+        every { databaseRepository.database.recipesQueries.selectAllRecipeListFav().executeAsList() } returns listOf(
+            RecipeInfo(
+                2,
+                "Soup",
+                "image",
+                2,
+                45,
+                "source",
+                "summary",
+                "www.website.com",
+                60,
+                0
+            ) // Assume recipe 1 is no longer a favorite
         )
-        assertTrue(
-            viewModel.favouriteList.value.containsAll(
-                listOf(
-                    RecipeInfo(
-                        1,
-                        "Pasta",
-                        "image",
-                        2,
-                        30,
-                        "source",
-                        "summary",
-                        "www.website.com",
-                        80,
-                        1
-                    ),
-                    RecipeInfo(
-                        2,
-                        "Pasta",
-                        "image",
-                        4,
-                        45,
-                        "source",
-                        "summary",
-                        "www.website.com",
-                        80,
-                        1
-                    ),
-                )
-            ), "Favourite list should match the expected recipes."
-        )
+
+        // Act: Update favorite status
+        favouriteViewModel.updateFavourite(1)
+
+        // Assert: Verify that the favorite list is updated
+        assertEquals(1, favouriteViewModel.favouriteList.value.size)
+        assertEquals("Soup", favouriteViewModel.favouriteList.value[0].title)
+
+        // Verify that the database update function was called with the correct parameters
+        verify { databaseRepository.database.recipesQueries.updateFavourite(favourite = 0, id = 1) }
     }
 }
 
