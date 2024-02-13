@@ -3,6 +3,7 @@ agp = "8.2.2"
 appcompat = "1.6.1"
 feather = "1.1.0"
 imageLoader = "1.7.0"
+junit = "4.13.2"
 kermit = "2.0.3"
 koinTestJunit5 = "3.5.3"
 koinVersion = "3.5.3"
@@ -19,6 +20,7 @@ ktorClientMock = "2.3.4"
 ktorVersion = "2.3.8"
 loggingInterceptor = "4.12.0"
 mockk = "1.13.9"
+mockkCommon = "1.12.5"
 multiplatformSettingsNoArg = "1.1.1"
 nativeDriver = "2.0.1"
 voyagerVersion = "1.1.0-alpha02"
@@ -29,6 +31,7 @@ android-driver = { module = "app.cash.sqldelight:android-driver", version.ref = 
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
 feather = { module = "br.com.devsrsouza.compose.icons:feather", version.ref = "feather" }
 image-loader = { module = "io.github.qdsfdhvh:image-loader", version.ref = "imageLoader" }
+junit = { module = "junit:junit", version.ref = "junit" }
 kermit = { module = "co.touchlab:kermit", version.ref = "kermit" }
 koin-android = { module = "io.insert-koin:koin-android", version.ref = "koinVersion" }
 koin-core = { module = "io.insert-koin:koin-core", version.ref = "koinVersion" }
@@ -55,6 +58,7 @@ ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "kto
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktorVersion" }
 logging-interceptor = { module = "com.squareup.okhttp3:logging-interceptor", version.ref = "loggingInterceptor" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+mockk-common = { module = "io.mockk:mockk-common", version.ref = "mockkCommon" }
 multiplatform-settings-no-arg = { module = "com.russhwolf:multiplatform-settings-no-arg", version.ref = "multiplatformSettingsNoArg" }
 native-driver = { module = "app.cash.sqldelight:native-driver", version.ref = "nativeDriver" }
 voyager-navigator = { module = "cafe.adriel.voyager:voyager-navigator", version.ref = "voyagerVersion" }

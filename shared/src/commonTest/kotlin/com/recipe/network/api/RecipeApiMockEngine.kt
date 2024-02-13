@@ -24,7 +24,7 @@ class RecipeApiMockEngine : BaseApiMockEngine() {
                         respond("{}", statusCode, responseHeaders)
                     }
                     else -> {
-                        error("Unhandled Link in ${this@RecipeApiMockEngine::class.java.simpleName}: ${request.url.encodedPath}")
+                        error("Unhandled: ${request.url.encodedPath}")
                     }
                 }
             }
