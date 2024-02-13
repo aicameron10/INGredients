@@ -3,8 +3,8 @@ plugins {
     alias(libs.plugins.kotlinCocoapods)
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.compose)
-    kotlin("plugin.serialization") version "1.9.20"
-    id("app.cash.sqldelight") version "2.0.1"
+    alias(libs.plugins.kotlinSerialization)
+    alias(libs.plugins.sqldelight)
 }
 
 sqldelight {
