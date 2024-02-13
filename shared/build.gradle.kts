@@ -86,8 +86,6 @@ kotlin {
             implementation(libs.ktor.client.okhttp)
             implementation(libs.logging.interceptor)
             implementation(libs.android.driver)
-            api(libs.androidx.activity.compose)
-            api(libs.androidx.appcompat)
         }
 
         iosMain.dependencies {
