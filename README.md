@@ -58,6 +58,12 @@ Conclusion:
 The architecture designed for my application provides a solid foundation for a scalable and maintainable mobile application across multiple platforms(iOS and Android). By using Kotlin Multiplatform, it can reduce the overhead of maintaining separate codebases and ensure consistency in business logic across platforms. 
 The application of MVVM facilitates testing and separation of concerns, particularly in conjunction with StateFlow for reactive state management. Continuous iteration and refinement will be crucial to help the application evolve, and if more time was spent on development.
 
+Known bug/issue :
+https://github.com/JetBrains/compose-multiplatform/issues/3437
+https://github.com/cashapp/sqldelight/issues/4534,
+
+Running and compiling will work on both ios and Android, full build fails due to compose - sql-delight issue mentioned above, due to multilatform compose being in Beta.
+
 Instructions:
 Prerequisites:
 Before you start, ensure you have the following installed:
